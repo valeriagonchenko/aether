@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="1030" viewBox="0 0 520 1030"><defs><linearGradient id="dress" x1="0" x2="1"><stop stop-color="#17161d"/><stop offset=".55" stop-color="#77727e"/><stop offset="1" stop-color="#25242e"/></linearGradient><linearGradient id="skin" x1="0" x2="1"><stop stop-color="#9d9aa2"/><stop offset=".5" stop-color="#d8d3d6"/><stop offset="1" stop-color="#96919b"/></linearGradient><linearGradient id="hair" x1="0" x2="1"><stop stop-color="#24212c"/><stop offset=".5" stop-color="#504b59"/><stop offset="1" stop-color="#1b1a24"/></linearGradient></defs>
+<path d="M158 244q-82 119 -71 296-5 188-46 340l441 27q-78 -237 -65 -371 15 -169 -62 -291Z" fill="url(#hair)"/>
+<path d="M12 1030q16 -238 103 -380l99 -75h119l91 72q80 137 83 383" fill="url(#dress)" stroke="#c4bbc6" stroke-opacity=".45" stroke-width="3"/>
+<path d="M214 523 193 652l76 100 65 -100-23 -129" fill="url(#skin)"/><path d="M168 254q-8 -138 106 -144 114 3 109 153l-8 164q-15 131 -105 142-91 -21 -99 -134Z" fill="url(#skin)"/>
+<path d="M149 364q-43 -123 4 -217 48 -105 136 -89 127 -5 133 181l-41 143-18 -145q-88 67 -203 75Z" fill="url(#hair)"/>
+<path d="M148 266q-56 82-45 206t-25 230q75 -71 92 -225Z M383 268q48 97 33 212t39 218q-79 -71-91 -225Z" fill="url(#hair)"/>
+<path d="M203 354q24 -15 51 -3M293 352q25 -12 47 1" fill="none" stroke="#69616c" stroke-width="7" stroke-linecap="round"/><path d="M210 377q18 13 39 0M302 376q20 11 38 0" fill="none" stroke="#443d48" stroke-width="4" stroke-linecap="round"/><path d="M269 391q-10 30 2 38M245 474q23 17 51 -2" fill="none" stroke="#968b96" stroke-width="4" stroke-linecap="round"/>
+<path d="M176 622q52 126 96 130 62 -47 86 -126" fill="none" stroke="#d3c9d4" stroke-width="4" opacity=".6"/><path d="M102 797q135 90 330 0M82 885q190 125 381 0" fill="none" stroke="#bbb1c0" stroke-width="2" opacity=".23"/>
+<circle cx="368" cy="230" r="17" fill="#c5bfca" opacity=".6"/><path d="m352 213 16 -40 16 40 39 16 -39 16-16 41-16-41-41-16z" stroke="#e4dce7" fill="none" opacity=".65"/>
+</svg>

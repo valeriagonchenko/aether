@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="1450" viewBox="0 0 900 1450"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4b4954"/><stop offset=".37" stop-color="#96929c"/><stop offset=".61" stop-color="#706e77"/><stop offset="1" stop-color="#13141b"/></linearGradient><radialGradient id="sun"><stop stop-color="#f0ebea"/><stop offset=".6" stop-color="#c9c4c7"/><stop offset="1" stop-color="#c9c4c7" stop-opacity="0"/></radialGradient></defs>
+<rect width="900" height="1450" fill="url(#sky)"/><circle cx="585" cy="454" r="245" fill="url(#sun)" opacity=".65"/><circle cx="585" cy="454" r="118" fill="#ded9dc" opacity=".75"/>
+<path d="M0 825 117 710 183 771 284 622 385 746 488 602 580 770 709 649 900 782V1450H0" fill="#55555f" opacity=".6"/>
+<path d="M0 960 143 822 251 918 341 792 445 878 575 740 680 858 780 790 900 855V1450H0" fill="#343640"/>
+<g fill="#272832"><rect x="214" y="720" width="59" height="410"/><path d="M197 732 243 663 291 732Z"/><rect x="330" y="665" width="80" height="480"/><path d="M318 667 368 590 420 667Z"/><rect x="506" y="760" width="80" height="393"/><path d="M497 761 546 675 596 761Z"/><rect x="636" y="790" width="67" height="350"/><path d="M624 792 672 725 717 792Z"/><path d="M110 1033V817h44v216M730 1047V860h30v187"/></g>
+<g stroke="#d2cbd0" stroke-width="2" opacity=".35" fill="none"><path d="M0 955q450 -145 900 -95"/><path d="M0 1005q430 -95 900 -50"/></g>
+<path d="M0 1135q175 -95 360 -40t540 -36v391H0" fill="#171820" opacity=".78"/>
+<path d="M0 1236q250 -100 900 30v184H0" fill="#0a0b10" opacity=".6"/>
+<g fill="#efedf1" opacity=".6"><circle cx="120" cy="183" r="2"/><circle cx="322" cy="257" r="1.2"/><circle cx="766" cy="123" r="2"/><circle cx="672" cy="300" r="1.4"/></g>
+</svg>
