@@ -4,7 +4,7 @@ const STORAGE_KEY = 'aether-visual-novel-v1';
 const ART = { moon:'assets/Aether-promo.png', velvet:'assets/velvet.svg', ashes:'assets/ashes.svg' };
 const AETHER_BACKGROUNDS = {space:'assets/background1.png',hall:'assets/background2.png'};
 const AETHER_SPRITES = {original:'assets/Aether-original.png',surprising:'assets/Aether-surprising.png'};
-const MUSIC_URL = 'assets/music-background.mp3'; // Необязательный файл: загрузи MP3 в assets/
+const MUSIC_URL = 'assets/music-background.mp3'; // Только настоящий MP3, иначе тишина
 const PORTRAITS = ['assets/figure-f.svg','assets/Aether-avatar.webp','assets/figure-f.svg','assets/figure.svg','assets/figure-f.svg','assets/figure.svg','assets/figure-f.svg','assets/figure.svg'];
 const CAST = [
  {id:'aether',name:'Аэтер',avatar:1,story:'moon'},
@@ -80,9 +80,7 @@ let data=loadData();
 // Сбрасываем только старый демо-пролог первой истории, остальные сохранения оставляем.
 if(data.progress.moon && !data.progress.moon.isAetherV2){delete data.progress.moon;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(err){}}
 let screen='loading', activeStory='moon', profileDraft=null, modal=null, note='', musicOn=false;
-let musicContext=null, musicNodes=[];
 let soundtrack=null;
-let isSoundtrackPlaying=false;
 const app=document.getElementById('app');
 const htmlEsc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const artStyle=k=>`style="--art:url('${ART[k]}')"`;
@@ -98,62 +96,165 @@ function renderProfile(){if(!profileDraft)profileDraft=structuredClone(data.pref
 function renderDetail(){const s=STORIES[activeStory],progress=data.progress[activeStory],fav=data.prefs.favoriteStory===activeStory;app.innerHTML=`<main class="screen story-screen"><div class="detail-art ${activeStory==='moon'?'aether-detail':''}" ${artStyle(activeStory)}><div class="detail-orbit"></div>${activeStory==='moon'?'':`<img src="${activeStory==='velvet'?'assets/figure-f.svg':'assets/figure.svg'}" class="detail-figure" alt="" />`}<div class="top-row">${btnIcon('‹','go','data-target="home" aria-label="Назад"')}<div class="top-actions">${btnIcon(fav?'♥':'♡','quick-favorite',`title="${fav?'Уже в избранном':'В избранное'}" aria-label="В избранное"`)}${btnIcon('⋯','settings','aria-label="Настройки"')}</div></div></div><div class="detail-pane"><div class="detail-kicker">${s.eyebrow}</div><h1>${s.title}</h1><p class="detail-subtitle">${s.subtitle}</p><div class="tag-row">${s.genres.map(t=>`<span class="tag">${t}</span>`).join('')}</div><p class="detail-description">${s.description}</p><div class="stats-panel"><div class="stat"><big>${s.chapters}</big><span>Главы</span></div><div class="stat"><big>2</big><span>Варианта финала</span></div><div class="stat"><big>${s.characters.length}</big><span>Персонажи</span></div></div><h3 class="detail-section-title">Главные герои</h3><div class="cast-row">${s.characters.map(id=>{const c=CAST.find(x=>x.id===id);return `<div class="cast-item">${portrait(c.avatar)}<small>${c.name}</small></div>`}).join('')}</div><h3 class="chapters-title">Главы и эпизоды</h3><div class="chapter-row"><span class="chapter-mark">00</span><div class="chapter-data"><h4>${s.opening}</h4><p>${progress?.completed?'Пройдено · можно переиграть':progress?.started?'В процессе':'Доступно сейчас'}</p></div><span class="lock">✧</span></div><div class="chapter-row"><span class="chapter-mark">01</span><div class="chapter-data"><h4>Глава I · Продолжение следует</h4><p>Пока в разработке</p></div><span class="lock">♢</span></div><div class="cta-sticky"><button class="primary-btn" data-action="play">${progress?.completed?'Переиграть пролог':progress?.started?'Продолжить историю':'Начать историю'} ✧</button></div></div></main>`;}
 function renderLibrary(){app.innerHTML=`<main class="screen main-screen"><div class="starfield"></div><div class="scroll-pane"><div class="content">${screenHeader('Моя библиотека')}<div class="overline">сохранённые путешествия</div><div class="salutation" style="margin-top:15px">Каждая история<br/>оставляет след.</div><p class="subtext">Твой прогресс сохраняется автоматически на этом устройстве.</p><div class="section-line"><h2>Истории</h2><span>03</span></div>${Object.entries(STORIES).map(([k,s])=>{const p=data.progress[k];return `<div class="library-item"><div class="library-thumb" ${artStyle(k)}></div><div><h3>${s.title}</h3><p>${!p?.started?'Ещё не начата':p.completed?'Пролог завершён':`Играешь · ${p.choices.length} решений`}</p><button data-action="story" data-id="${k}">${p?.started?'Открыть':'Посмотреть'} ↗</button></div></div>`;}).join('')}</div></div>${nav('library')}</main>`;}
 function gameState(){if(!data.progress[activeStory])data.progress[activeStory]={started:true,node:'start',flags:{},relations:{},stats:{bravery:0},choices:[],history:[],completed:false,isAetherV2:activeStory==='moon'};return data.progress[activeStory];}
-function renderGame(){const story=STORIES[activeStory],p=gameState(),node=story.nodes[p.node]||story.nodes.start;if(node.end){p.completed=true;persist();renderEnd(story,p,node);return;}
- const figures=node.figures||'both';let figureHtml='';
+function renderGame(){
+ const story=STORIES[activeStory];
+ const p=gameState();
+ const node=story.nodes[p.node]||story.nodes.start;
+ if(node.end){p.completed=true;persist();renderEnd(story,p,node);return;}
+
+ // Две позиции: персонаж слева и будущая главная героиня справа.
+ // В дальнейшем достаточно указать node.heroImage = 'assets/heroine.png'.
+ const figures=node.figures||'both';
+ let figureHtml='';
  if(activeStory==='moon'){
-  if(figures==='aether')figureHtml=`<img class="scene-figure aether-sprite" src="${AETHER_SPRITES[node.expression]||AETHER_SPRITES.original}" alt="Аэтер" />`;
+  if(figures==='aether'){
+   const expression=node.expression==='surprising'?'surprising':'original';
+   figureHtml=`<div class="character-slot character-slot--left"><img class="scene-figure aether-sprite" src="${AETHER_SPRITES[expression]}" alt="Аэтер" /></div>`;
+  }
+  if(node.heroImage)figureHtml+=`<div class="character-slot character-slot--right"><img class="scene-figure heroine-sprite" src="${htmlEsc(node.heroImage)}" alt="Главная героиня" /></div>`;
  }else{
-  if(figures==='both'||figures==='male')figureHtml+=`<img class="scene-figure left ${node.active==='female'?'dim':''}" src="assets/figure.svg" alt="" />`;
-  if(figures==='both'||figures==='female')figureHtml+=`<img class="scene-figure right ${node.active==='male'?'dim':''}" src="assets/figure-f.svg" alt="" />`;
+  if(figures==='both'||figures==='male')figureHtml+=`<div class="character-slot character-slot--left ${node.active==='female'?'dim':''}"><img class="scene-figure" src="assets/figure.svg" alt="Персонаж" /></div>`;
+  if(figures==='both'||figures==='female')figureHtml+=`<div class="character-slot character-slot--right ${node.active==='male'?'dim':''}"><img class="scene-figure" src="assets/figure-f.svg" alt="Персонаж" /></div>`;
  }
- const sceneStyle=activeStory==='moon' ? `style="--scene-image:url('${AETHER_BACKGROUNDS[node.bg]||AETHER_BACKGROUNDS.hall}')"` : artStyle(activeStory);
- app.innerHTML=`<main class="screen game"><div class="scene-art ${activeStory==='moon'?'aether-scene':''}" ${sceneStyle}></div><div class="game-stars"></div><div class="scene-figures">${figureHtml}</div><div class="game-vignette"></div><div class="game-top">${btnIcon('‹','game-back','aria-label="Назад к истории"')}<span class="chapter-label">Пролог · ${story.title}</span><div class="game-top-right">${btnIcon(musicOn?'♫':'♪','toggle-music','title="Музыка" aria-label="Звук"')}${btnIcon('☰','history','title="Журнал" aria-label="Журнал"')}${btnIcon('⚙','settings','title="Настройки" aria-label="Настройки"')}</div></div><div class="dialogue-area">${node.choices?`<div class="choice-list">${node.choices.map((c,i)=>`<button class="choice-btn" data-action="choice" data-id="${i}">${c.text}</button>`).join('')}</div>`:''}${note?`<div class="choice-feedback">${htmlEsc(note)}</div>`:''}<div class="dialogue-box"><div class="speaker-name">${node.speaker}</div><p class="dialogue-line">${node.text}</p>${node.choices?'':`<span class="continue-indicator">⌄</span><button class="click-dialogue" data-action="advance" aria-label="Следующая реплика"></button>`}</div></div></main>`;}
+ const sceneStyle=activeStory==='moon'
+  ? `style="--scene-image:url('${AETHER_BACKGROUNDS[node.bg]||AETHER_BACKGROUNDS.hall}')"`
+  : artStyle(activeStory);
+ const isChoice=Boolean(node.choices?.length);
+ const choicesHtml=isChoice?`<section class="decision-screen" aria-label="Экран выбора">
+   <div class="decision-content">
+    <div class="decision-eyebrow">✧ &nbsp; ТВОЙ ВЫБОР &nbsp; ✧</div>
+    <div class="decision-rule"></div>
+    <p class="decision-intro">${node.text}</p>
+    <div class="decision-options">${node.choices.map((c,i)=>`<button class="decision-option" data-action="choice" data-id="${i}"><span class="decision-icon">✧</span><span>${c.text}</span></button>`).join('')}</div>
+    <p class="decision-hint">Выбор повлияет на развитие истории</p>
+   </div>
+  </section>`:'';
+ const dialogueHtml=!isChoice?`<div class="dialogue-area">
+   ${note?`<div class="choice-feedback">${htmlEsc(note)}</div>`:''}
+   <div class="dialogue-box">
+    <div class="speaker-name">${node.speaker}</div>
+    <p class="dialogue-line">${node.text}</p>
+    <span class="continue-indicator" aria-hidden="true">⌄</span>
+   </div>
+   <div class="tap-hint">Нажми в любом месте, чтобы продолжить</div>
+  </div>`:'';
+ app.innerHTML=`<main class="screen game game-layout ${isChoice?'is-decision':''}" data-story="${activeStory}" data-node="${p.node}" data-expression="${node.expression||'original'}">
+  <div class="scene-art ${activeStory==='moon'?'aether-scene':''}" ${sceneStyle}></div>
+  <div class="game-stars"></div>
+  <div class="scene-figures">${figureHtml}</div>
+  <div class="game-vignette"></div>
+  <div class="game-top">${btnIcon('‹','game-back','aria-label="Назад к истории"')}
+   <span class="chapter-label">Пролог · ${story.title}</span>
+   <div class="game-top-right">${btnIcon(musicOn?'♫':'♪','toggle-music','title="Музыка" aria-label="Звук"')}${btnIcon('☰','history','title="Журнал" aria-label="Журнал"')}${btnIcon('⚙','settings','title="Настройки" aria-label="Настройки"')}</div>
+  </div>
+  ${choicesHtml}${dialogueHtml}
+ </main>`;
+}
 function renderEnd(story,p,node){const mainHero=CAST.find(c=>c.id===story.characters[0]);const heroRel=p.relations[mainHero.id]||0;app.innerHTML=`<main class="screen game"><div class="game-end" ${artStyle(activeStory)}><div class="overline">пролог завершён</div><div class="end-sigil">✧</div><h2>${node.title}</h2><p>${node.endingText(p)}</p><div class="end-stat"><div>Принятые решения: <strong>${p.choices.length}</strong></div><div>Смелость: <strong>${p.stats.bravery||0}</strong></div><div>Отношения · ${mainHero.name}: <strong>${heroRel>0?'+'+heroRel:heroRel}</strong></div></div><div class="end-actions"><button class="primary-btn" data-action="game-back">Вернуться к истории</button><button class="outlined-btn" data-action="restart">Пройти заново ↻</button></div></div></main>`;}
-function renderModal(){if(!modal)return;const div=document.createElement('div');div.className='overlay';div.id='modal';if(modal==='settings')div.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-label="Настройки"><div class="top-row"><h2>Настройки</h2>${btnIcon('×','close-modal','aria-label="Закрыть"')}</div><p>Это демонстрационная версия. Все выборы сохраняются автоматически в твоём браузере.</p><div class="modal-row"><span>Атмосферный звук</span><button class="outlined-btn" style="margin:0" data-action="toggle-music">${musicOn?'Включён ✓':'Выключен'}</button></div><div class="modal-row"><span>Текущий прогресс</span><span>${Object.values(data.progress).filter(x=>x.started).length} / 3 истории</span></div><button class="outlined-btn" data-action="reset-data" style="width:100%">Удалить все локальные данные</button></section>`;
+function renderModal(){if(!modal)return;const div=document.createElement('div');div.className='overlay';div.id='modal';if(modal==='settings')div.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-label="Настройки"><div class="top-row"><h2>Настройки</h2>${btnIcon('×','close-modal','aria-label="Закрыть"')}</div><p>Это демонстрационная версия. Все выборы сохраняются автоматически в твоём браузере.</p><div class="modal-row"><span>Фоновая музыка</span><button class="outlined-btn" style="margin:0" data-action="toggle-music">${musicOn?'Включён ✓':'Выключен'}</button></div><div class="modal-row"><span>Текущий прогресс</span><span>${Object.values(data.progress).filter(x=>x.started).length} / 3 истории</span></div><button class="outlined-btn" data-action="reset-data" style="width:100%">Удалить все локальные данные</button></section>`;
  if(modal==='history'){const history=gameState().history;const node=STORIES[activeStory].nodes[gameState().node];div.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-label="Журнал"><div class="top-row"><h2>Журнал</h2>${btnIcon('×','close-modal','aria-label="Закрыть"')}</div><div style="max-height:390px;overflow:auto">${history.length?history.slice(-12).map(h=>`<div class="history-text"><b>${htmlEsc(h.speaker)}</b>${htmlEsc(h.text)}</div>`).join(''):'<p>Здесь появятся прочитанные реплики.</p>'}<div class="history-text"><b>${node.speaker}</b>${node.text}</div></div></section>`;}
  div.addEventListener('click',e=>{if(e.target===div){modal=null;render();}});app.append(div);}
 function render(){switch(screen){case'loading':renderLoading();break;case'home':renderHome();break;case'profile':renderProfile();break;case'story':renderDetail();break;case'library':renderLibrary();break;case'game':renderGame();break;}renderModal();}
-function go(to){if(to==='profile'&&screen!=='profile')profileDraft=structuredClone(data.prefs);if(to==='game'&&!data.progress[activeStory])gameState();screen=to;note='';modal=null;render();}
+function go(to){clearTimeout(frameTransitionTimer);frameTransitionBusy=false;app.querySelectorAll('.game-frame-out').forEach(el=>el.remove());if(to==='profile'&&screen!=='profile')profileDraft=structuredClone(data.prefs);if(to==='game'&&!data.progress[activeStory])gameState();screen=to;note='';modal=null;render();}
 function startStory(){const p=data.progress[activeStory];if(p?.completed){data.progress[activeStory]=null;delete data.progress[activeStory];}gameState();persist();go('game');}
-function advance(){const p=gameState(),node=STORIES[activeStory].nodes[p.node];if(!node||node.end||node.choices)return;p.history.push({speaker:node.speaker,text:node.text});p.node=node.next||'ending';persist();render();}
-function choose(index){const p=gameState(),node=STORIES[activeStory].nodes[p.node];const choice=node?.choices?.[index];if(!choice)return;p.history.push({speaker:node.speaker,text:node.text});p.history.push({speaker:'Твой выбор',text:choice.text});p.choices.push({node:p.node,text:choice.text});if(choice.flag)p.flags[choice.flag]=true;for(const [k,v] of Object.entries(choice.effects||{})){if(k==='bravery')p.stats.bravery=(p.stats.bravery||0)+v;else p.relations[k]=(p.relations[k]||0)+v;}p.node=choice.next;note='✧ Выбор сохранён';persist();render();setTimeout(()=>{if(note){note='';const n=document.querySelector('.choice-feedback');if(n)n.remove();}},1400);}
-function toast(text){const el=document.createElement('div');el.className='success-toast';el.textContent=text;app.append(el);setTimeout(()=>el.remove(),2200);}
-function stopAmbient(){musicNodes.forEach(node=>{try{node.stop();}catch(err){}});musicNodes=[];}
-function startAmbient(){
- try{
-  const Ctx=window.AudioContext||window.webkitAudioContext;
-  if(!Ctx)return false;
-  if(!musicContext)musicContext=new Ctx();
-  if(musicContext.state==='suspended')musicContext.resume();
-  [110,164.81,220,329.63].forEach((freq,i)=>{
-   const osc=musicContext.createOscillator(),gain=musicContext.createGain();
-   osc.type=i===0?'sine':'triangle';osc.frequency.value=freq;
-   gain.gain.value=i===0?.013:.0035;osc.connect(gain);gain.connect(musicContext.destination);
-   osc.start();musicNodes.push(osc);
-  });
-  return true;
- }catch(err){return false;}
-}
-async function toggleMusic(){
- if(musicOn){
-  if(soundtrack){soundtrack.pause();soundtrack.currentTime=0;}
-  isSoundtrackPlaying=false;stopAmbient();musicOn=false;render();return;
- }
- musicOn=true;
- if(!soundtrack){soundtrack=new Audio(MUSIC_URL);soundtrack.loop=true;soundtrack.volume=.48;}
- try{
-  await soundtrack.play();
-  isSoundtrackPlaying=true;
- }catch(err){
-  isSoundtrackPlaying=false;
-  // Пока MP3 не загружен на GitHub, играет синтезированный атмосферный фон.
-  if(!startAmbient()){musicOn=false;toast('Звук недоступен');}
- }
+// Плавная смена кадров. Старый кадр остаётся поверх нового на 480 мс
+// и растворяется вместе со старой эмоцией персонажа.
+const FRAME_TRANSITION_MS=490;
+let frameTransitionBusy=false;
+let frameTransitionTimer=null;
+function transitionGameFrame(updateState){
+ if(frameTransitionBusy||screen!=='game'||modal)return;
+ frameTransitionBusy=true;
+ const oldGame=app.querySelector('.game-layout');
+ const outgoing=oldGame?oldGame.cloneNode(true):null;
+ updateState();
  render();
+ const incoming=app.querySelector('.screen.game');
+ if(!incoming){frameTransitionBusy=false;return;}
+ incoming.classList.add('game-frame-in');
+ if(outgoing){
+  outgoing.classList.add('game-frame-out');
+  outgoing.setAttribute('aria-hidden','true');
+  outgoing.querySelectorAll('[data-action]').forEach(el=>el.removeAttribute('data-action'));
+  app.appendChild(outgoing);
+ }
+ clearTimeout(frameTransitionTimer);
+ frameTransitionTimer=setTimeout(()=>{
+  outgoing?.remove();
+  incoming.classList.remove('game-frame-in');
+  frameTransitionBusy=false;
+ },FRAME_TRANSITION_MS);
+}
+function advance(){
+ const p=gameState(),node=STORIES[activeStory].nodes[p.node];
+ if(!node||node.end||node.choices||frameTransitionBusy)return;
+ transitionGameFrame(()=>{
+  p.history.push({speaker:node.speaker,text:node.text});
+  p.node=node.next||'ending';
+  note='';
+  persist();
+ });
+}
+function choose(index){
+ const p=gameState(),node=STORIES[activeStory].nodes[p.node];
+ const choice=node?.choices?.[index];
+ if(!choice||frameTransitionBusy)return;
+ transitionGameFrame(()=>{
+  p.history.push({speaker:node.speaker,text:node.text});
+  p.history.push({speaker:'Твой выбор',text:choice.text});
+  p.choices.push({node:p.node,text:choice.text});
+  if(choice.flag)p.flags[choice.flag]=true;
+  for(const [k,v] of Object.entries(choice.effects||{})){
+   if(k==='bravery')p.stats.bravery=(p.stats.bravery||0)+v;
+   else p.relations[k]=(p.relations[k]||0)+v;
+  }
+  p.node=choice.next;
+  note='✧ Выбор сохранён';
+  persist();
+ });
+ setTimeout(()=>{if(note){note='';document.querySelector('.choice-feedback')?.remove();}},1700);
+}
+function toast(text){const el=document.createElement('div');el.className='success-toast';el.textContent=text;app.append(el);setTimeout(()=>el.remove(),2200);}
+// Музыка воспроизводится только из настоящего MP3; никаких синтезированных шумов.
+let musicBusy=false;
+async function toggleMusic(){
+ if(musicBusy)return;
+ if(musicOn){
+  if(soundtrack){soundtrack.pause();}
+  musicOn=false;
+  render();
+  return;
+ }
+ musicBusy=true;
+ try{
+  if(!soundtrack){
+   soundtrack=new Audio(MUSIC_URL);
+   soundtrack.loop=true;
+   soundtrack.volume=0.4;
+   soundtrack.preload='none';
+  }
+  await soundtrack.play();
+  musicOn=true;
+  render();
+ }catch(error){
+  musicOn=false;
+  render();
+  toast('Музыка не найдена. Загрузите настоящий MP3 в папку assets.');
+ }finally{
+  musicBusy=false;
+ }
 }
 function confirmReset(){if(!window.confirm('Удалить профиль и весь игровой прогресс из этого браузера?'))return;data=structuredClone(DEFAULT);persist();profileDraft=null;go('home');toast('Локальные данные удалены');}
 app.addEventListener('input',e=>{if(e.target.id==='nickname'&&profileDraft)profileDraft.name=e.target.value;});
-app.addEventListener('click',e=>{const target=e.target.closest('[data-action]');if(!target)return;const action=target.dataset.action,id=target.dataset.id;
+app.addEventListener('click',e=>{
+ const target=e.target.closest('[data-action]');
+ if(!target){
+  // Кликабельна вся игровая сцена, кроме меню/плашек с вариантами.
+  // Один click на мобильном и десктопе: без двойной обработки touch.
+  if(screen==='game'&&!modal&&!frameTransitionBusy&&e.target.closest('.game-layout'))advance();
+  return;
+ }
+ const action=target.dataset.action,id=target.dataset.id;
 switch(action){
 case'finish-loading':go('home');break;
 case'go':go(target.dataset.target);break;
