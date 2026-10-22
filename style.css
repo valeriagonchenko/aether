@@ -26,3 +26,18 @@ button.icon-button{height:38px;width:38px;display:inline-grid;place-items:center
 @media(min-width:700px){.app{height:min(850px,calc(100dvh - 52px));width:424px;margin:26px auto;border-radius:28px;box-shadow:0 32px 100px rgba(0,0,0,.55),0 0 0 1px rgba(231,225,240,.29),inset 0 0 20px rgba(240,232,250,.1)}.app:before{border-radius:28px}.desktop-ornament{position:fixed;top:50%;display:flex;gap:21px;align-items:center;opacity:.52;transform:translateY(-50%)}.desktop-ornament--left{left:calc(50% - 365px)}.desktop-ornament--right{right:calc(50% - 365px)}.vertical-word{font-family:var(--serif);font-size:15px;letter-spacing:.18em;writing-mode:vertical-rl;text-transform:uppercase}.desktop-ornament--left .vertical-word{transform:rotate(180deg)}.desktop-line{height:230px;border-right:1px solid rgba(242,236,249,.25)}.tiny-cross{font:28px var(--serif)}}
 @media(max-height:690px){.salutation{margin-top:22px}.section-line{margin:23px 0 12px}.story-card{height:155px}.loading{padding-top:46px}.loading .emblem{width:135px;height:135px}.loading-brand{margin-bottom:32px}.loading-brand h1{font-size:50px}.detail-pane h1{font-size:43px}.dialogue-box{min-height:145px;padding:16px}.dialogue-line{font-size:12px}.scene-figures{bottom:24%;height:56%}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
+
+/* AETHER: авторские фоны, промо и модель генерала */
+.story-card[style*="Aether-promo"]:before{filter:none;background-position:center 29%}
+.story-card[style*="Aether-promo"]:after{background:linear-gradient(90deg,rgba(9,10,16,.98) 2%,rgba(11,12,20,.85) 46%,rgba(10,11,17,.07) 93%)}
+.detail-art.aether-detail{background-position:center 29%;background-image:linear-gradient(to bottom,rgba(9,10,17,.03),rgba(10,11,18,.06) 40%,#11121a 96%),var(--art)}
+.detail-art.aether-detail .detail-orbit{opacity:.2}
+.scene-art.aether-scene{background-image:linear-gradient(180deg,rgba(6,7,15,.08),rgba(6,7,15,.08) 42%,rgba(7,8,14,.85) 100%),var(--scene-image);background-position:center center;background-size:cover}
+.scene-figure.aether-sprite{height:122%;width:112%;left:50%;right:auto;bottom:-9%;transform:translateX(-50%);object-fit:contain;object-position:center bottom;filter:drop-shadow(0 8px 18px rgba(0,0,0,.45))}
+.scene-figures:has(.aether-sprite){height:60%;bottom:23%}
+/* Полупрозрачный затемнитель сохраняет читаемость реплик даже на ярком фоне. */
+.game:has(.aether-sprite) .game-vignette{background:linear-gradient(180deg,transparent 40%,rgba(9,9,14,.09) 58%,rgba(10,10,17,.83) 84%,rgba(11,11,20,.97) 100%)}
+/* Не даём заголовку главы заходить под кнопки. */
+.game-top{gap:7px}
+.game-top .chapter-label{min-width:0;flex:1;max-width:calc(100% - 178px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;text-align:center}
+.game-top-right{flex-shrink:0}
