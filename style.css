@@ -121,3 +121,13 @@ button.icon-button{height:38px;width:38px;display:inline-grid;place-items:center
 
 /* Портрет главной героини в списке персонажей (не изменяет аватары игроков) */
 .avatar.story-hero-avatar img{height:220%;width:160%;max-width:none;object-fit:cover;object-position:center 3%;filter:none;}
+
+/* v6: одна говорящая фигура в кадре, плавная смена без наложения двух героев */
+.game-frame-out.character-swap-out .scene-figures {animation:aetherSoloFadeOut 200ms ease-in both;}
+.game-frame-in.character-swap-in .scene-figures {animation:aetherSoloFadeIn 285ms 205ms ease-out both;}
+@keyframes aetherSoloFadeOut {from {opacity:1} to {opacity:0}}
+@keyframes aetherSoloFadeIn {from {opacity:0} to {opacity:1}}
+@media (prefers-reduced-motion:reduce) {
+ .game-frame-out.character-swap-out .scene-figures,
+ .game-frame-in.character-swap-in .scene-figures {animation-duration:.01ms!important;animation-delay:0ms!important}
+}

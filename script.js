@@ -86,28 +86,33 @@ function renderGame(){
  const node=story.nodes[p.node]||story.nodes.start;
  if(node.end){p.completed=true;persist();renderEnd(story,p,node);return;}
 
- // Кого показать в кадре задаёт сценарий stories/moon.js.
- // 'aether' — слева, 'hero' — справа, 'both' — оба, 'none' — только фон.
- const figures=node.figures||'both';
+ // В сцене может быть только один персонаж. Если говорит Рассказчик,
+ // на экране остаётся только фон. Для реплик показываем говорящего:
+ // Аэтер слева, главная героиня справа. Значение figures: 'both'
+ // из старых глав теперь никогда не показывает двух персонажей.
+ const speaker=(node.speaker||'').trim();
+ const narrator=speaker==='Рассказчик' || speaker==='';
  let figureHtml='';
- if(activeStory==='moon'){
-  const showAether=figures==='aether'||figures==='both';
-  const showHero=figures==='hero'||figures==='both';
-  const expression=node.expression==='surprising'?'surprising':'original';
-  const heroExpression=node.heroExpression==='crying'?'crying':'original';
-  if(showAether){
-   const softFocus=showHero&&node.speaker==='Героиня'?'is-inactive':'';
-   figureHtml+=`<div class="character-slot character-slot--left ${softFocus}"><img class="scene-figure aether-sprite" src="${AETHER_SPRITES[expression]}" alt="Аэтер" /></div>`;
+ if(!narrator && node.figures!=='none'){
+  if(activeStory==='moon'){
+   if(speaker==='Аэтер'){
+    const expression=node.expression==='surprising'?'surprising':'original';
+    figureHtml=`<div class="character-slot character-slot--left"><img class="scene-figure aether-sprite" src="${AETHER_SPRITES[expression]}" alt="Аэтер" /></div>`;
+   }else if(speaker==='Героиня'){
+    const heroExpression=node.heroExpression==='crying'?'crying':'original';
+    const image=node.heroImage||HERO_SPRITES[heroExpression];
+    figureHtml=`<div class="character-slot character-slot--right"><img class="scene-figure heroine-sprite" src="${htmlEsc(image)}" alt="Главная героиня" /></div>`;
+   }
+  }else{
+   // Универсальная логика для двух остальных историй: фигура говорящего.
+   // Если в старом сценарии было figures: 'both', второй спрайт не показываем.
+   const femaleNames=['Вивьен','Ирис'];
+   const maleNames=['Ноа','Каэль'];
+   const gender=femaleNames.includes(speaker)?'female':maleNames.includes(speaker)?'male':
+    (node.figures==='female'||node.figures==='male'?node.figures:node.active||'male');
+   const isFemale=gender==='female';
+   figureHtml=`<div class="character-slot character-slot--${isFemale?'right':'left'}"><img class="scene-figure" src="assets/${isFemale?'figure-f':'figure'}.svg" alt="${htmlEsc(speaker)}" /></div>`;
   }
-  if(showHero){
-   const softFocus=showAether&&node.speaker==='Аэтер'?'is-inactive':'';
-   // heroImage можно использовать для уникального костюма в конкретной сцене.
-   const image=node.heroImage||HERO_SPRITES[heroExpression];
-   figureHtml+=`<div class="character-slot character-slot--right ${softFocus}"><img class="scene-figure heroine-sprite" src="${htmlEsc(image)}" alt="Главная героиня" /></div>`;
-  }
- }else{
-  if(figures==='both'||figures==='male')figureHtml+=`<div class="character-slot character-slot--left ${node.active==='female'?'dim':''}"><img class="scene-figure" src="assets/figure.svg" alt="Персонаж" /></div>`;
-  if(figures==='both'||figures==='female')figureHtml+=`<div class="character-slot character-slot--right ${node.active==='male'?'dim':''}"><img class="scene-figure" src="assets/figure-f.svg" alt="Персонаж" /></div>`;
  }
  const sceneStyle=activeStory==='moon'
   ? `style="--scene-image:url('${AETHER_BACKGROUNDS[node.bg]||AETHER_BACKGROUNDS.hall}')"`
@@ -170,6 +175,15 @@ function transitionGameFrame(updateState){
   outgoing.setAttribute('aria-hidden','true');
   outgoing.querySelectorAll('[data-action]').forEach(el=>el.removeAttribute('data-action'));
   app.appendChild(outgoing);
+  // При смене говорящего сначала скрываем старого персонажа,
+  // и лишь затем проявляем следующего. Они не стоят рядом даже в анимации.
+  const prevSlot=oldGame?.querySelector('.scene-figures .character-slot');
+  const nextSlot=incoming.querySelector('.scene-figures .character-slot');
+  if(prevSlot && nextSlot &&
+    prevSlot.classList.contains('character-slot--left') !== nextSlot.classList.contains('character-slot--left')){
+   outgoing.classList.add('character-swap-out');
+   incoming.classList.add('character-swap-in');
+  }
  }
  clearTimeout(frameTransitionTimer);
  frameTransitionTimer=setTimeout(()=>{
