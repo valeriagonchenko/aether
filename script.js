@@ -118,24 +118,21 @@ function renderGame(){
   ? `style="--scene-image:url('${AETHER_BACKGROUNDS[node.bg]||AETHER_BACKGROUNDS.hall}')"`
   : artStyle(activeStory);
  const isChoice=Boolean(node.choices?.length);
- const choicesHtml=isChoice?`<section class="decision-screen" aria-label="Экран выбора">
-   <div class="decision-content">
-    <div class="decision-eyebrow">✧ &nbsp; ТВОЙ ВЫБОР &nbsp; ✧</div>
-    <div class="decision-rule"></div>
-    <p class="decision-intro">${node.text}</p>
-    <div class="decision-options">${node.choices.map((c,i)=>`<button class="decision-option" data-action="choice" data-id="${i}"><span class="decision-icon">✧</span><span>${c.text}</span></button>`).join('')}</div>
-    <p class="decision-hint">Выбор повлияет на развитие истории</p>
-   </div>
-  </section>`:'';
- const dialogueHtml=!isChoice?`<div class="dialogue-area">
+ // Диалоговое окно теперь одно и то же и для реплик, и для выбора.
+ // Если в кадре есть choices — варианты ответа показываются карточками
+ // сразу под окном, рядом с персонажем, а не отдельным экраном.
+ const boxClass=narrator?'dialogue-box is-narrator':'dialogue-box';
+ const nameHtml=speaker?`<div class="speaker-name"><span class="speaker-mark" aria-hidden="true">✧</span>${node.speaker}</div>`:'';
+ const choicesHtml=isChoice?`<div class="choice-stack" role="group" aria-label="Варианты ответа">${node.choices.map((c,i)=>`<button class="choice-card" style="--i:${i}" data-action="choice" data-id="${i}"><span class="choice-num">0${i+1}</span><span class="choice-text">${c.text}</span></button>`).join('')}</div><div class="tap-hint">Выбор повлияет на развитие истории</div>`:'';
+ const dialogueHtml=`<div class="dialogue-area">
    ${note?`<div class="choice-feedback">${htmlEsc(note)}</div>`:''}
-   <div class="dialogue-box">
-    <div class="speaker-name">${node.speaker}</div>
+   <div class="${boxClass}">
+    ${nameHtml}
     <p class="dialogue-line">${node.text}</p>
-    <span class="continue-indicator" aria-hidden="true">⌄</span>
+    ${isChoice?'':'<span class="continue-indicator" aria-hidden="true">⌄</span>'}
    </div>
-   <div class="tap-hint">Нажми в любом месте, чтобы продолжить</div>
-  </div>`:'';
+   ${isChoice?choicesHtml:'<div class="tap-hint">Нажми в любом месте, чтобы продолжить</div>'}
+  </div>`;
  app.innerHTML=`<main class="screen game game-layout ${isChoice?'is-decision':''}" data-story="${activeStory}" data-node="${p.node}" data-expression="${node.expression||'original'}">
   <div class="scene-art ${activeStory==='moon'?'aether-scene':''}" ${sceneStyle}></div>
   <div class="game-stars"></div>
@@ -145,7 +142,7 @@ function renderGame(){
    <span class="chapter-label">Пролог · ${story.title}</span>
    <div class="game-top-right">${btnIcon(musicOn?'♫':'♪','toggle-music','title="Музыка" aria-label="Звук"')}${btnIcon('☰','history','title="Журнал" aria-label="Журнал"')}${btnIcon('⚙','settings','title="Настройки" aria-label="Настройки"')}</div>
   </div>
-  ${choicesHtml}${dialogueHtml}
+  ${dialogueHtml}
  </main>`;
 }
 function renderEnd(story,p,node){const mainHero=CAST.find(c=>c.id===story.characters[0]);const heroRel=p.relations[mainHero.id]||0;app.innerHTML=`<main class="screen game"><div class="game-end" ${artStyle(activeStory)}><div class="overline">пролог завершён</div><div class="end-sigil">✧</div><h2>${node.title}</h2><p>${node.endingText(p)}</p><div class="end-stat"><div>Принятые решения: <strong>${p.choices.length}</strong></div><div>Смелость: <strong>${p.stats.bravery||0}</strong></div><div>Отношения · ${mainHero.name}: <strong>${heroRel>0?'+'+heroRel:heroRel}</strong></div></div><div class="end-actions"><button class="primary-btn" data-action="game-back">Вернуться к истории</button><button class="outlined-btn" data-action="restart">Пройти заново ↻</button></div></div></main>`;}

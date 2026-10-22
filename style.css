@@ -131,3 +131,140 @@ button.icon-button{height:38px;width:38px;display:inline-grid;place-items:center
  .game-frame-out.character-swap-out .scene-figures,
  .game-frame-in.character-swap-in .scene-figures {animation-duration:.01ms!important;animation-delay:0ms!important}
 }
+
+
+/* ============================================================
+   v7: ФУТУРИСТИЧНОЕ ДИАЛОГОВОЕ ОКНО + ВЫБОРЫ ПРЯМО В СЦЕНЕ
+   Всё оформление окна диалога и карточек выбора — только здесь.
+   Чтобы поменять цвет или высоту окна, правь переменные ниже.
+   ============================================================ */
+main.game-layout{
+  --hud:#8fd8ff;                 /* основной акцентный цвет (ледяной голубой) */
+  --hud-2:#b7a6ff;               /* второй акцент (сиреневый) */
+  --hud-text:#eef5ff;            /* цвет текста реплик */
+  --hud-bg-1:rgba(16,22,42,.82); /* окно: верх */
+  --hud-bg-2:rgba(7,9,21,.92);   /* окно: низ */
+  --dlg-lift:clamp(64px,21%,190px); /* ВЫСОТА окна над нижним краем (для обычных реплик) */
+}
+
+/* --- положение блока: окно поднято выше, варианты — под ним --- */
+main.game-layout .dialogue-area{
+  width:calc(100% - 20px); max-width:620px; text-align:left;
+  bottom:calc(var(--dlg-lift) + env(safe-area-inset-bottom));
+}
+main.game-layout.is-decision .dialogue-area{ bottom:calc(14px + env(safe-area-inset-bottom)); }
+/* мягкое свечение под окном */
+main.game-layout .dialogue-area::before{
+  content:""; position:absolute; z-index:-1; inset:-26px -14px -10px; pointer-events:none;
+  background:radial-gradient(ellipse at 50% 55%,rgba(143,216,255,.16),rgba(183,166,255,.07) 45%,transparent 72%);
+}
+
+/* --- само окно: скошенные углы, тонкая светящаяся рамка, «стекло» --- */
+main.game-layout .dialogue-box{
+  --cut:20px;
+  position:relative; margin-top:18px; min-height:178px; padding:36px 24px 34px;
+  border:0; border-radius:0; background:none; box-shadow:none;
+  -webkit-backdrop-filter:none; backdrop-filter:none; text-align:left;
+}
+main.game-layout .dialogue-box::before{      /* рамка */
+  content:""; position:absolute; inset:0; z-index:0; border:0; border-radius:0; pointer-events:none;
+  background:linear-gradient(100deg,var(--hud) 0%,rgba(183,166,255,.6) 48%,rgba(143,216,255,.22) 100%);
+  clip-path:polygon(0 0,calc(100% - var(--cut)) 0,100% var(--cut),100% 100%,var(--cut) 100%,0 calc(100% - var(--cut)));
+}
+main.game-layout .dialogue-box::after{       /* заливка + сканлайны + маленькая линия-акцент */
+  content:""; position:absolute; inset:1px; z-index:0; pointer-events:none;
+  background:
+    linear-gradient(90deg,var(--hud),transparent) left 20px bottom 11px / 64px 1px no-repeat,
+    linear-gradient(90deg,transparent,var(--hud-2)) right 26px top 11px / 40px 1px no-repeat,
+    repeating-linear-gradient(0deg,rgba(255,255,255,.028) 0 1px,transparent 1px 4px),
+    linear-gradient(160deg,var(--hud-bg-1),var(--hud-bg-2));
+  -webkit-backdrop-filter:blur(14px) saturate(1.2); backdrop-filter:blur(14px) saturate(1.2);
+  clip-path:polygon(0 0,calc(100% - var(--cut) + .6px) 0,100% calc(var(--cut) - .6px),100% 100%,calc(var(--cut) - .6px) 100%,0 calc(100% - var(--cut) + .6px));
+}
+
+/* --- плашка с именем: наклонённый «язычок» на верхней кромке окна --- */
+main.game-layout .speaker-name{
+  position:absolute; z-index:2; top:-18px; left:18px; display:flex; align-items:center; gap:9px;
+  height:36px; min-width:0; margin:0; padding:0 32px 0 20px; border:0; border-radius:0; box-shadow:none;
+  background:linear-gradient(100deg,#9fe0ff,#b9a9ff); color:#0a1024; text-align:left;
+  font:700 13px/1 var(--sans); letter-spacing:.18em; text-transform:uppercase; white-space:nowrap;
+  clip-path:polygon(12px 0,calc(100% - 14px) 0,100% 100%,0 100%);
+}
+main.game-layout .speaker-mark{ font:400 13px/1 var(--serif); letter-spacing:0; opacity:.8; }
+
+/* --- текст реплики --- */
+main.game-layout .dialogue-line{
+  position:relative; z-index:1; margin:0; max-width:none; text-align:left; min-height:84px;
+  font:500 15.5px/1.75 var(--sans); color:var(--hud-text); text-shadow:0 1px 10px rgba(0,0,0,.45);
+}
+/* слова Рассказчика — курсивом, без «голоса» персонажа */
+main.game-layout .dialogue-box.is-narrator .dialogue-line{ font:italic 500 18px/1.6 var(--serif); color:#dde8fb; }
+main.game-layout .continue-indicator{ z-index:1; right:24px; bottom:14px; color:var(--hud); font-size:16px; }
+main.game-layout .tap-hint{
+  margin-top:12px; text-align:center; font:600 10px/1.4 var(--sans); letter-spacing:.14em;
+  color:rgba(200,226,255,.6); text-transform:uppercase; pointer-events:none;
+}
+main.game-layout .choice-feedback{
+  margin-bottom:32px; background:rgba(150,220,255,.95); color:#0a1024; font-weight:700; letter-spacing:.04em;
+}
+
+/* --- варианты выбора: карточки прямо под окном --- */
+main.game-layout .choice-stack{ display:flex; flex-direction:column; gap:10px; margin-top:16px; }
+main.game-layout .choice-card{
+  --cut:14px;
+  position:relative; display:flex; align-items:center; gap:14px; width:100%; min-height:56px;
+  padding:12px 22px 12px 16px; border:0; border-radius:0; outline:0; cursor:pointer; text-align:left;
+  background:linear-gradient(100deg,var(--hud),rgba(183,166,255,.6));
+  color:var(--hud-text); font:600 14.5px/1.4 var(--sans);
+  clip-path:polygon(var(--cut) 0,100% 0,100% calc(100% - var(--cut)),calc(100% - var(--cut)) 100%,0 100%,0 var(--cut));
+  transition:transform .18s ease, filter .18s ease;
+  animation:aetherChoiceIn .45s cubic-bezier(.2,.8,.2,1) both; animation-delay:calc(.12s + var(--i,0) * .08s);
+}
+main.game-layout .choice-card::before{
+  content:""; position:absolute; inset:1px; z-index:0; pointer-events:none;
+  background:linear-gradient(100deg,rgba(32,44,80,.94),rgba(11,14,30,.96));
+  clip-path:polygon(calc(var(--cut) - .6px) 0,100% 0,100% calc(100% - var(--cut) + .6px),calc(100% - var(--cut) + .6px) 100%,0 100%,0 calc(var(--cut) - .6px));
+  transition:background .18s ease;
+}
+main.game-layout .choice-num,
+main.game-layout .choice-text{ position:relative; z-index:1; }
+main.game-layout .choice-num{
+  flex:0 0 auto; padding-right:14px; border-right:1px solid rgba(143,216,255,.38);
+  font:700 11px/1 var(--sans); letter-spacing:.14em; color:var(--hud);
+}
+main.game-layout .choice-card:hover,
+main.game-layout .choice-card:focus-visible{ transform:translateX(4px); filter:drop-shadow(0 0 10px rgba(143,216,255,.45)); }
+main.game-layout .choice-card:hover::before,
+main.game-layout .choice-card:focus-visible::before{ background:linear-gradient(100deg,rgba(66,92,150,.96),rgba(24,30,62,.97)); }
+main.game-layout .choice-card:hover .choice-num,
+main.game-layout .choice-card:focus-visible .choice-num{ color:#fff; }
+main.game-layout .choice-card:active{ transform:translateX(4px) scale(.985); }
+@keyframes aetherChoiceIn{ from{opacity:0; transform:translateY(14px)} to{opacity:1; transform:none} }
+.game-frame-out .choice-card{ animation:none; }   /* уходящий кадр не должен проигрывать появление заново */
+
+/* когда есть варианты ответа, окно с вопросом компактнее — персонаж остаётся виден */
+main.game-layout.is-decision .dialogue-box{ min-height:112px; padding-bottom:26px; }
+main.game-layout.is-decision .dialogue-line{ min-height:30px; }
+
+/* при выборе фон снизу чуть темнее — карточки читаются лучше */
+main.game-layout.is-decision .game-vignette{
+  background:linear-gradient(180deg,rgba(5,7,15,.10) 0%,rgba(5,7,15,0) 35%,rgba(6,8,18,.5) 60%,rgba(8,10,20,.92) 100%);
+}
+
+/* --- низкие экраны / телефоны --- */
+@media(max-height:700px){
+  main.game-layout{ --dlg-lift:clamp(40px,15%,150px); }
+  main.game-layout .dialogue-box{ min-height:150px; padding:32px 20px 28px; }
+  main.game-layout .dialogue-line{ font-size:14.5px; min-height:66px; }
+  main.game-layout .dialogue-box.is-narrator .dialogue-line{ font-size:16.5px; }
+  main.game-layout .choice-card{ min-height:50px; padding-top:9px; padding-bottom:9px; font-size:14px; }
+  main.game-layout .choice-stack{ gap:8px; margin-top:12px; }
+}
+@media(max-width:420px){
+  main.game-layout .dialogue-area{ width:calc(100% - 16px); }
+  main.game-layout .dialogue-box{ padding-left:20px; padding-right:20px; }
+  main.game-layout .speaker-name{ left:14px; font-size:12px; padding:0 28px 0 18px; }
+}
+@media(prefers-reduced-motion:reduce){
+  main.game-layout .choice-card{ animation:none; transition:none; }
+}
