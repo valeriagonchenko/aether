@@ -80,11 +80,20 @@ function renderProfile(){if(!profileDraft)profileDraft=structuredClone(data.pref
 function renderDetail(){const s=STORIES[activeStory],progress=data.progress[activeStory],fav=data.prefs.favoriteStory===activeStory;app.innerHTML=`<main class="screen story-screen"><div class="detail-art ${activeStory==='moon'?'aether-detail':''}" ${artStyle(activeStory)}><div class="detail-orbit"></div>${activeStory==='moon'?'':`<img src="${activeStory==='velvet'?'assets/figure-f.svg':'assets/figure.svg'}" class="detail-figure" alt="" />`}<div class="top-row">${btnIcon('‹','go','data-target="home" aria-label="Назад"')}<div class="top-actions">${btnIcon(fav?'♥':'♡','quick-favorite',`title="${fav?'Уже в избранном':'В избранное'}" aria-label="В избранное"`)}${btnIcon('⋯','settings','aria-label="Настройки"')}</div></div></div><div class="detail-pane"><div class="detail-kicker">${s.eyebrow}</div><h1>${s.title}</h1><p class="detail-subtitle">${s.subtitle}</p><div class="tag-row">${s.genres.map(t=>`<span class="tag">${t}</span>`).join('')}</div><p class="detail-description">${s.description}</p><div class="stats-panel"><div class="stat"><big>${s.chapters}</big><span>Главы</span></div><div class="stat"><big>2</big><span>Варианта финала</span></div><div class="stat"><big>${s.characters.length}</big><span>Персонажи</span></div></div><h3 class="detail-section-title">Главные герои</h3><div class="cast-row">${s.characters.map(id=>{const c=CAST.find(x=>x.id===id);return `<div class="cast-item">${portrait(c.avatar,c.portrait?'story-hero-avatar':'',c.portrait)}<small>${c.name}</small></div>`}).join('')}</div><h3 class="chapters-title">Главы и эпизоды</h3><div class="chapter-row"><span class="chapter-mark">00</span><div class="chapter-data"><h4>${s.opening}</h4><p>${progress?.completed?'Пройдено · можно переиграть':progress?.started?'В процессе':'Доступно сейчас'}</p></div><span class="lock">✧</span></div><div class="chapter-row"><span class="chapter-mark">01</span><div class="chapter-data"><h4>Глава I · Продолжение следует</h4><p>Пока в разработке</p></div><span class="lock">♢</span></div><div class="cta-sticky"><button class="primary-btn" data-action="play">${progress?.completed?'Переиграть пролог':progress?.started?'Продолжить историю':'Начать историю'} ✧</button></div></div></main>`;}
 function renderLibrary(){app.innerHTML=`<main class="screen main-screen"><div class="starfield"></div><div class="scroll-pane"><div class="content">${screenHeader('Моя библиотека')}<div class="overline">сохранённые путешествия</div><div class="salutation" style="margin-top:15px">Каждая история<br/>оставляет след.</div><p class="subtext">Твой прогресс сохраняется автоматически на этом устройстве.</p><div class="section-line"><h2>Истории</h2><span>03</span></div>${Object.entries(STORIES).map(([k,s])=>{const p=data.progress[k];return `<div class="library-item"><div class="library-thumb" ${artStyle(k)}></div><div><h3>${s.title}</h3><p>${!p?.started?'Ещё не начата':p.completed?'Пролог завершён':`Играешь · ${p.choices.length} решений`}</p><button data-action="story" data-id="${k}">${p?.started?'Открыть':'Посмотреть'} ↗</button></div></div>`;}).join('')}</div></div>${nav('library')}</main>`;}
 function gameState(){if(!data.progress[activeStory])data.progress[activeStory]={started:true,node:'start',flags:{},relations:{},stats:{bravery:0},choices:[],history:[],completed:false,isAetherV2:activeStory==='moon'};return data.progress[activeStory];}
+// Держим одну анимацию кат-сцены на нескольких репликах.
+// Даже если игрок быстро нажимает, камера не прыгает к финальному кадру.
+const cutsceneTimeline={image:null,startedAt:0};
 function renderGame(){
  const story=STORIES[activeStory];
  const p=gameState();
  const node=story.nodes[p.node]||story.nodes.start;
  if(node.end){p.completed=true;persist();renderEnd(story,p,node);return;}
+ // Загружаем тяжёлую иллюстрацию заранее, за одну реплику до появления.
+ const nextCutscene=story.nodes[node.next]?.cutscene;
+ if(typeof nextCutscene==='string' && !node.cutscene){
+  const preload=new Image();
+  preload.src=nextCutscene;
+ }
 
  // В сцене может быть только один персонаж. Если говорит Рассказчик,
  // на экране остаётся только фон. Для реплик показываем говорящего:
@@ -92,8 +101,26 @@ function renderGame(){
  // из старых глав теперь никогда не показывает двух персонажей.
  const speaker=(node.speaker||'').trim();
  const narrator=speaker==='Рассказчик' || speaker==='';
+ // cutscene — изображение вместо обычного фона и спрайтов.
+ // Даже при репликах Аэтера / героини их модели не перекрывают иллюстрацию.
+ const cutsceneImage=typeof node.cutscene==='string' ? node.cutscene : '';
+ let cutsceneAnimating=false;
+ let cutsceneElapsed=0;
+ if(cutsceneImage){
+  if(cutsceneTimeline.image!==cutsceneImage){
+   cutsceneTimeline.image=cutsceneImage;
+   cutsceneTimeline.startedAt=node.cutsceneStart ? performance.now() : -Infinity;
+  }
+  cutsceneElapsed=Math.max(0,performance.now()-cutsceneTimeline.startedAt);
+  cutsceneAnimating=cutsceneElapsed<3400;
+ }else{
+  cutsceneTimeline.image=null;
+ }
+ const cutsceneHtml=cutsceneImage
+  ? `<div class="cutscene-art ${cutsceneAnimating?'is-entering':''}" style="--cutscene-elapsed:-${Math.floor(cutsceneElapsed)}ms"><img src="${htmlEsc(cutsceneImage)}" alt="Иллюстрация кат-сцены" draggable="false" /></div>`
+  : '';
  let figureHtml='';
- if(!narrator && node.figures!=='none'){
+ if(!cutsceneImage && !narrator && node.figures!=='none'){
   if(activeStory==='moon'){
    if(speaker==='Аэтер'){
     const expression=node.expression==='surprising'?'surprising':'original';
@@ -135,6 +162,7 @@ function renderGame(){
   </div>`;
  app.innerHTML=`<main class="screen game game-layout ${isChoice?'is-decision':''}" data-story="${activeStory}" data-node="${p.node}" data-expression="${node.expression||'original'}">
   <div class="scene-art ${activeStory==='moon'?'aether-scene':''}" ${sceneStyle}></div>
+  ${cutsceneHtml}
   <div class="game-stars"></div>
   <div class="scene-figures">${figureHtml}</div>
   <div class="game-vignette"></div>
@@ -170,6 +198,12 @@ function transitionGameFrame(updateState){
  if(outgoing){
   outgoing.classList.add('game-frame-out');
   outgoing.setAttribute('aria-hidden','true');
+  // Синхронизируем старый и новый слой иллюстрации при быстрой смене реплик.
+  // Отрицательная задержка позволяет продолжить движение камеры, а не перезапускать.
+  const outgoingCutscene=outgoing.querySelector('.cutscene-art.is-entering');
+  if(outgoingCutscene && cutsceneTimeline.image){
+   outgoingCutscene.style.setProperty('--cutscene-elapsed',`-${Math.min(3400,Math.floor(performance.now()-cutsceneTimeline.startedAt))}ms`);
+  }
   outgoing.querySelectorAll('[data-action]').forEach(el=>el.removeAttribute('data-action'));
   app.appendChild(outgoing);
   // При смене говорящего сначала скрываем старого персонажа,
