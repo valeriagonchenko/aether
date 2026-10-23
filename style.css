@@ -329,3 +329,60 @@ main.game-layout.is-decision .game-vignette{
     animation:none!important;
   }
 }
+
+
+/* ============================================================
+   v11 — Кат-сцена Аэтера на заставке загрузки
+   Источник: assets/cutscene-aether-01.png
+   Обычная кат-сцена внутри пролога продолжает работать как раньше.
+   ============================================================ */
+.loading {
+  isolation: isolate;
+}
+/* Иллюстрация движется из верхней части кадра и мягко отдаляется. */
+.loading::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: url("assets/cutscene-aether-01.png");
+  background-position: center 38%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  transform-origin: 50% 25%;
+  will-change: opacity, transform, clip-path;
+  animation: aetherSplashReveal 1.55s cubic-bezier(.22,.68,.18,1) both;
+}
+/* Затемнение оставляет заголовок и индикатор загрузки читаемыми. */
+.loading::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(8,8,14,.30) 0%,
+    rgba(8,8,14,.12) 32%,
+    rgba(10,10,17,.34) 53%,
+    rgba(10,10,17,.77) 80%,
+    rgba(9,10,17,.94) 100%
+  );
+}
+.loading .emblem {z-index:2; opacity:.60;}
+.loading .loading-brand,
+.loading .loader-bottom {z-index: 3;}
+@keyframes aetherSplashReveal {
+  0% {opacity:0; clip-path:inset(0 0 96% 0); transform:translate3d(0,-5%,0) scale(1.24);}
+  20% {opacity:1;}
+  100% {opacity:1; clip-path:inset(0 0 0 0); transform:translate3d(0,0,0) scale(1.025);}
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading::before {
+    animation:none!important;
+    opacity:1;
+    clip-path:none;
+    transform:none;
+  }
+}
