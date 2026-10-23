@@ -403,19 +403,72 @@ main.game-layout.is-decision .game-vignette{
 .casebook-clue{padding:11px 0;border-bottom:1px solid rgba(239,232,241,.17);font-size:12px;color:#ded8e3;line-height:1.5}
 
 
-/* Плавное растворение всех персонажей снизу */
-.scene-figures .scene-figure {
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    black 0%,
-    black 65%,
-    transparent 100%
-  );
-
-  mask-image: linear-gradient(
-    to bottom,
-    black 0%,
-    black 65%,
-    transparent 100%
-  );
+/* ============================================================
+   v13 · КАТАБАСИС — кинематографичный пролог
+   Эти правила работают в любой истории, где используются
+   соответствующие поля blackout / pan, а не привязаны к имени PNG.
+   ============================================================ */
+/* Настоящая чёрная пауза. Верхние кнопки доступны, в том числе mute. */
+main.game-layout.is-blackout {background:#000!important;}
+main.game-layout.is-blackout .scene-art {background:#000!important;animation:none!important;}
+main.game-layout.is-blackout .game-stars,
+main.game-layout.is-blackout .game-vignette,
+main.game-layout.is-blackout .scene-figures {display:none!important;}
+main.game-layout.is-blackout .chapter-label{visibility:hidden;}
+main.game-layout.is-blackout .game-top{z-index:10;}
+main.game-layout.is-blackout .icon-button{background:rgba(12,12,17,.18);border-color:rgba(255,255,255,.16);}
+/* Закрытие глаз: старый кадр сужается, за ним открывается темнота. */
+.app>.game-frame-out.blink-outgoing{animation:katabasisBlinkClose 490ms ease-in both!important;}
+@keyframes katabasisBlinkClose{
+  0%{opacity:1;clip-path:inset(0 0 0 0)}
+  100%{opacity:0;clip-path:inset(48% 0 48% 0)}
 }
+/* Панорама работает с горизонтально расширенной иллюстрацией. */
+main.game-layout[data-story="katabasis"] .scene-art.katabasis-scene{
+  background-size:100% 100%, auto 100%;
+  background-position:center center, center center;
+  background-repeat:no-repeat;
+}
+main.game-layout.has-pan-left-right[data-story="katabasis"] .scene-art.katabasis-scene{
+  background-position:center center, 0% center;
+  animation:katabasisPanLeftRight 11s linear both;
+}
+@keyframes katabasisPanLeftRight{
+  from{background-position:center center, 0% center}
+  to{background-position:center center, 100% center}
+}
+/* Универсальный нижний градиент для игровых персонажей — не для кат-сцен. */
+.game-layout .scene-figures .scene-figure{
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 66%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0%,#000 66%,transparent 100%);
+}
+/* Модель Катабасиса занимает передний план, оставляя диалог поверх. */
+main.game-layout[data-story="katabasis"] .scene-figures{
+  position:absolute;inset:auto 0 17%;height:77%;z-index:2;
+}
+main.game-layout[data-story="katabasis"] .character-slot{
+  position:absolute;inset:auto auto 0 0;height:100%;width:100%;
+}
+main.game-layout[data-story="katabasis"] .character-slot--left{left:-22%;right:auto;}
+main.game-layout[data-story="katabasis"] .character-slot--right{right:-24%;left:auto;}
+main.game-layout[data-story="katabasis"] .scene-figure.katabasis-sprite{
+  position:absolute;inset:auto 0 0 0;width:100%;height:100%;
+  object-fit:contain;object-position:center bottom;transform:none;
+  filter:drop-shadow(0 12px 20px rgba(0,0,0,.55));
+}
+/* Естественное приглушение фона: не скрывать нож в кат-сцене. */
+main.game-layout[data-story="katabasis"] .scene-art.katabasis-scene{
+  background-image:linear-gradient(180deg,rgba(4,8,15,.03),rgba(4,8,15,.04) 48%,rgba(4,8,15,.38) 100%),var(--scene-image);
+}
+@media(max-width:420px){
+ main.game-layout[data-story="katabasis"] .character-slot--left{left:-24%;}
+ main.game-layout[data-story="katabasis"] .character-slot--right{right:-24%;}
+}
+@media(prefers-reduced-motion:reduce){
+ main.game-layout.has-pan-left-right .scene-art{animation:none!important;background-position:center center!important;}
+ .app>.game-frame-out.blink-outgoing{animation:none!important;}
+}
+
+/* Чёрная заставка: только управляющая нота, без лишнего HUD. */
+main.game-layout.is-blackout .game-top > .icon-button,
+main.game-layout.is-blackout .game-top-right > .icon-button:not([data-action="toggle-music"]){visibility:hidden;pointer-events:none;}
