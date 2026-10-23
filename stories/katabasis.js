@@ -52,6 +52,14 @@ window.AETHER_STORIES.katabasis = {
       speaker:'Героиня',
       text:'Как я тут оказалась?..',
       cutscene:'assets/cut-scene1.png', cutsceneStart:true,
+      next:'knifeHold'
+    },
+    // Полноэкранный кадр без диалога: изображение можно рассмотреть.
+    // minViewMs запрещает переходить дальше первые три секунды,
+    // после этого игрок сам нажимает на экран.
+    knifeHold: {
+      hideDialogue:true, cinematicPause:true, minViewMs:3000,
+      cutscene:'assets/cut-scene1.png',
       next:'blink'
     },
     // 04: короткое моргание / провал в темноту.
