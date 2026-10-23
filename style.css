@@ -472,3 +472,94 @@ main.game-layout[data-story="katabasis"] .scene-art.katabasis-scene{
 /* Чёрная заставка: только управляющая нота, без лишнего HUD. */
 main.game-layout.is-blackout .game-top > .icon-button,
 main.game-layout.is-blackout .game-top-right > .icon-button:not([data-action="toggle-music"]){visibility:hidden;pointer-events:none;}
+
+
+/* ===========================================================
+   v14 — масштаб персонажей, динамическая высота реплик и
+         быстрая панорама. Эти блоки расположены в конце CSS,
+         чтобы перекрывать прежние фиксированные размеры.
+   =========================================================== */
+
+/* ДИАЛОГ: окно подстраивается под фактическую длину фразы.
+   Низ плашки остаётся на прежнем месте; длинный текст расширит её вверх. */
+main.game-layout .dialogue-box,
+main.game-layout.is-decision .dialogue-box {
+  min-height:0;
+  height:auto;
+  padding:32px 20px 22px;
+}
+main.game-layout .dialogue-line,
+main.game-layout.is-decision .dialogue-line {
+  min-height:0;
+  height:auto;
+  padding-right:20px; /* свободное место для стрелки продолжения */
+}
+main.game-layout .continue-indicator {bottom:8px;right:16px;}
+@media(max-height:700px){
+  main.game-layout .dialogue-box,
+  main.game-layout.is-decision .dialogue-box {min-height:0;padding:30px 18px 18px;}
+  main.game-layout .dialogue-line,
+  main.game-layout.is-decision .dialogue-line {min-height:0;}
+}
+
+/* ПЕРСОНАЖИ КАТАБАСИСА: крупнее — приблизительно как в референсе.
+   Ширина спрайта больше ширины экрана: PNG не ужимается по ширине.
+   Низ остаётся под диалогом и растворяется в градиентную прозрачность. */
+main.game-layout[data-story="katabasis"] .scene-figures {
+  bottom:0%;
+  height:99%;
+  overflow:visible;
+}
+main.game-layout[data-story="katabasis"] .character-slot {
+  height:100%;
+  width:100%;
+}
+main.game-layout[data-story="katabasis"] .character-slot--left {left:-28%;right:auto;}
+main.game-layout[data-story="katabasis"] .character-slot--right {right:-28%;left:auto;}
+main.game-layout[data-story="katabasis"] .scene-figure.katabasis-sprite {
+  width:145%;
+  max-width:none;
+  height:100%;
+  right:auto;
+  left:0;
+  object-fit:contain;
+  object-position:left bottom;
+}
+/* Справа выравниваем по правому краю, а не отправляем картинку влево. */
+main.game-layout[data-story="katabasis"] .character-slot--right .scene-figure.katabasis-sprite {
+  left:auto;
+  right:0;
+  object-position:right bottom;
+}
+
+/* ПАНОРАМА: вся горизонтальная прокрутка фона за 2.6 секунды,
+   вместо прежних 11 секунд. Сохраняем финальную позицию. */
+main.game-layout.has-pan-left-right[data-story="katabasis"] .scene-art.katabasis-scene {
+  animation:katabasisPanLeftRight 2.6s ease-in-out both;
+}
+@media(max-width:420px){
+  main.game-layout[data-story="katabasis"] .character-slot--left {left:-30%;}
+  main.game-layout[data-story="katabasis"] .character-slot--right {right:-30%;}
+}
+
+/* v15: обложка Катабасиса + пауза для просмотра CG */
+/* Обложка стоит во всех местах, где используется --art: карточка, лендинг, библиотека. */
+.story-card--katabasis::before{background-position:center 30%;filter:none;}
+.detail-art.katabasis-detail{background-position:center 18%;}
+.katabasis-card-mark,.katabasis-detail-mark{display:none;}
+/* В арт-кадре ослабляем затемнение, чтобы была видна сама иллюстрация. */
+.game-layout.is-cutscene-pause .game-vignette{
+ background:linear-gradient(to bottom,rgba(5,7,13,.27),transparent 28%,transparent 77%,rgba(4,6,12,.18));
+}
+.game-layout.is-cutscene-pause .cutscene-art::after{
+ background:linear-gradient(to bottom,rgba(4,5,12,.24),transparent 26%,transparent 78%,rgba(4,5,12,.18));
+}
+.cinematic-continue{
+ position:absolute;z-index:9;bottom:calc(26px + env(safe-area-inset-bottom));left:15px;right:15px;
+ text-align:center;letter-spacing:.12em;text-transform:uppercase;font-size:10px;font-weight:600;
+ color:rgba(255,255,255,.84);text-shadow:0 1px 12px rgba(0,0,0,.9);
+ pointer-events:none;opacity:0;animation:cinematicHintIn .65s 2.9s ease-out forwards;
+}
+.cinematic-continue span{margin-left:8px;font-size:15px;}
+@keyframes cinematicHintIn{to{opacity:1;}}
+@media(prefers-reduced-motion:reduce){.cinematic-continue{animation:none;opacity:1;}}

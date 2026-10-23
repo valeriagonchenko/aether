@@ -2,7 +2,7 @@
 
 const STORAGE_KEY = 'aether-visual-novel-v1';
 // Истории регистрируются в stories/*.js до загрузки этого файла.
-const ART = {moon:'assets/Aether-promo.png'};
+const ART = {moon:'assets/Aether-promo.png', katabasis:'assets/promo-katabasis.png'};
 const AETHER_BACKGROUNDS = {space:'assets/background1.png', hall:'assets/background2.png'};
 const AETHER_SPRITES = {original:'assets/Aether-original.png', surprising:'assets/Aether-surprising.png'};
 const HERO_SPRITES = {original:'assets/her-original.png', crying:'assets/her-crying.png'};
@@ -67,9 +67,9 @@ function screenHeader(title,back='home'){return `<div class="page-top">${btnIcon
 function nav(active){return `<nav class="nav" aria-label="Основная навигация"><button data-action="go" data-target="home" class="${active==='home'?'active':''}"><span class="nav-icon">⌂</span>Истории</button><button data-action="go" data-target="library" class="${active==='library'?'active':''}"><span class="nav-icon">◇</span>Библиотека</button><button data-action="go" data-target="profile" class="${active==='profile'?'active':''}"><span class="nav-icon">♙</span>Профиль</button></nav>`;}
 function renderLoading(){app.innerHTML=`<main class="screen loading"><div class="starfield"></div><div class="emblem"><span class="emblem-glyph">✧</span></div><div class="loading-brand"><div class="overline">визуальные истории</div><h1>AETHER</h1><p>Истории за гранью</p></div><div class="loader-bottom"><div class="loader-track"><div class="loader-fill" id="loader-fill"></div></div><p class="loading-tip" id="loading-percent">Пробуждаем звёзды · 0%</p><button data-action="finish-loading" class="loading-skip">Пропустить заставку</button></div></main>`;}
 function beginLoading(){renderLoading();let n=0;const interval=setInterval(()=>{if(screen!=='loading'){clearInterval(interval);return;}n=Math.min(100,n+5);const p=document.getElementById('loader-fill'),t=document.getElementById('loading-percent');if(p)p.style.width=n+'%';if(t)t.textContent=`Пробуждаем звёзды · ${n}%`;if(n>=100){clearInterval(interval);setTimeout(()=>{if(screen==='loading')go('home');},250);}},65);}
-function renderHome(){const short=data.prefs.name?.trim()||'Странница';app.innerHTML=`<main class="screen main-screen"><div class="starfield"></div><div class="scroll-pane"><div class="content"><div class="top-row"><div class="brand-mini">AETHER<span>✦</span></div><div class="top-actions">${musicButton()}<button class="icon-button" data-action="go" data-target="profile" aria-label="Профиль">${portrait(data.prefs.avatar,'avatar-tiny')}</button></div></div><div class="salutation">С возвращением,<br/><strong>${htmlEsc(short)}.</strong></div><p class="subtext">Звёзды уже знают твою историю.<br/>Осталось решить, какой она станет.</p><div class="section-line"><h2>Выбери свою судьбу</h2><span>01 — 0${STORY_COUNT}</span></div>${Object.entries(STORIES).map(([id,s],i)=>`<article class="story-card ${id==='katabasis'?'story-card--katabasis':''}" ${artStyle(id)}><div class="card-copy"><div class="card-number">ИСТОРИЯ 0${i+1} ✧</div><h3>${s.title}</h3><p>${s.subtitle}</p><button class="mini-button" data-action="story" data-id="${id}">${data.progress[id]?.started?'Продолжить':'Подробнее'} ↗</button></div>${id==='katabasis'?'<span class="katabasis-card-mark" aria-hidden="true">K</span>':''}</article>`).join('')}<div class="wide-message"><span class="glyph">✧</span><div><h4>Твой выбор имеет значение</h4><p>Каждое решение меняет отношения, открывает реплики и приводит к разным финалам.</p></div></div></div></div>${nav('home')}</main>`;}
+function renderHome(){const short=data.prefs.name?.trim()||'Странница';app.innerHTML=`<main class="screen main-screen"><div class="starfield"></div><div class="scroll-pane"><div class="content"><div class="top-row"><div class="brand-mini">AETHER<span>✦</span></div><div class="top-actions">${musicButton()}<button class="icon-button" data-action="go" data-target="profile" aria-label="Профиль">${portrait(data.prefs.avatar,'avatar-tiny')}</button></div></div><div class="salutation">С возвращением,<br/><strong>${htmlEsc(short)}.</strong></div><p class="subtext">Звёзды уже знают твою историю.<br/>Осталось решить, какой она станет.</p><div class="section-line"><h2>Выбери свою судьбу</h2><span>01 — 0${STORY_COUNT}</span></div>${Object.entries(STORIES).map(([id,s],i)=>`<article class="story-card ${id==='katabasis'?'story-card--katabasis':''}" ${artStyle(id)}><div class="card-copy"><div class="card-number">ИСТОРИЯ 0${i+1} ✧</div><h3>${s.title}</h3><p>${s.subtitle}</p><button class="mini-button" data-action="story" data-id="${id}">${data.progress[id]?.started?'Продолжить':'Подробнее'} ↗</button></div></article>`).join('')}<div class="wide-message"><span class="glyph">✧</span><div><h4>Твой выбор имеет значение</h4><p>Каждое решение меняет отношения, открывает реплики и приводит к разным финалам.</p></div></div></div></div>${nav('home')}</main>`;}
 function renderProfile(){if(!profileDraft)profileDraft=structuredClone(data.prefs);const p=profileDraft;app.innerHTML=`<main class="screen main-screen"><div class="starfield"></div><div class="scroll-pane"><div class="content">${screenHeader('Мой профиль')}<div class="profile-ring">${portrait(p.avatar)}</div><p class="center profile-caption">Твоя история начинается с тебя ✧</p><div class="profile-heading">Выбери аватар</div><div class="avatar-grid">${Array.from({length:8},(_,i)=>`<button class="avatar-choose ${p.avatar===i?'selected':''}" data-action="avatar" data-id="${i}" aria-label="Аватар ${i+1}">${portrait(i)}</button>`).join('')}</div><label class="field-label" for="nickname">Имя игрока</label><input class="input-text" id="nickname" maxlength="24" placeholder="Как к тебе обращаться?" value="${htmlEsc(p.name)}" /><label class="field-label">Любимая история</label><div class="favorites-story">${Object.entries(STORIES).map(([k,s])=>`<button class="favorite-tile ${p.favoriteStory===k?'selected':''}" data-action="favorite-story" data-id="${k}"><div class="thumb" ${artStyle(k)}></div><div class="tile-label">${s.title}</div></button>`).join('')}</div><label class="field-label">Любимые персонажи · до 3</label><div class="characters-grid">${CAST.map(c=>`<button class="character-tile ${p.favoriteCharacters.includes(c.id)?'selected':''}" data-action="favorite-character" data-id="${c.id}">${portrait(c.avatar,c.portrait?'story-hero-avatar':'',c.portrait)}<span>${c.name}</span><small>${p.favoriteCharacters.includes(c.id)?'✦ Выбрано':STORIES[c.story].title}</small></button>`).join('')}</div><button class="primary-btn" style="margin-top:28px" data-action="save-profile">Сохранить профиль ✧</button><p class="form-note">Демо-версия: профиль хранится только в этом браузере. Регистрация и синхронизация между устройствами пока не подключены.</p></div></div>${nav('profile')}</main>`;}
-function renderDetail(){const s=STORIES[activeStory],progress=data.progress[activeStory],fav=data.prefs.favoriteStory===activeStory;app.innerHTML=`<main class="screen story-screen"><div class="detail-art ${activeStory==='moon'?'aether-detail':'katabasis-detail'}" ${artStyle(activeStory)}><div class="detail-orbit"></div>${activeStory==='katabasis'?'<span class="katabasis-detail-mark" aria-hidden="true">K</span>':''}<div class="top-row">${btnIcon('‹','go','data-target="home" aria-label="Назад"')}<div class="top-actions">${btnIcon(fav?'♥':'♡','quick-favorite',`title="${fav?'Уже в избранном':'В избранное'}" aria-label="В избранное"`)}${btnIcon('⋯','settings','aria-label="Настройки"')}</div></div></div><div class="detail-pane"><div class="detail-kicker">${s.eyebrow}</div><h1>${s.title}</h1><p class="detail-subtitle">${s.subtitle}</p><div class="tag-row">${s.genres.map(t=>`<span class="tag">${t}</span>`).join('')}</div><p class="detail-description">${s.description}</p><div class="stats-panel"><div class="stat"><big>${s.chapters}</big><span>Главы</span></div><div class="stat"><big>${activeStory==='katabasis'?'3':'2'}</big><span>${activeStory==='katabasis'?'Основные ветки · план':'Финала демо'}</span></div><div class="stat"><big>${activeStory==='katabasis'?'2':s.characters.length}</big><span>${activeStory==='katabasis'?'Мини-интрижки · план':'Персонажи'}</span></div></div>
+function renderDetail(){const s=STORIES[activeStory],progress=data.progress[activeStory],fav=data.prefs.favoriteStory===activeStory;app.innerHTML=`<main class="screen story-screen"><div class="detail-art ${activeStory==='moon'?'aether-detail':'katabasis-detail'}" ${artStyle(activeStory)}><div class="detail-orbit"></div><div class="top-row">${btnIcon('‹','go','data-target="home" aria-label="Назад"')}<div class="top-actions">${btnIcon(fav?'♥':'♡','quick-favorite',`title="${fav?'Уже в избранном':'В избранное'}" aria-label="В избранное"`)}${btnIcon('⋯','settings','aria-label="Настройки"')}</div></div></div><div class="detail-pane"><div class="detail-kicker">${s.eyebrow}</div><h1>${s.title}</h1><p class="detail-subtitle">${s.subtitle}</p><div class="tag-row">${s.genres.map(t=>`<span class="tag">${t}</span>`).join('')}</div><p class="detail-description">${s.description}</p><div class="stats-panel"><div class="stat"><big>${s.chapters}</big><span>Главы</span></div><div class="stat"><big>${activeStory==='katabasis'?'3':'2'}</big><span>${activeStory==='katabasis'?'Основные ветки · план':'Финала демо'}</span></div><div class="stat"><big>${activeStory==='katabasis'?'2':s.characters.length}</big><span>${activeStory==='katabasis'?'Мини-интрижки · план':'Персонажи'}</span></div></div>
  ${s.features?.length?`<h3 class="detail-section-title">Особенности истории</h3><div class="story-features">${s.features.map(f=>`<span class="feature-pill">✧ ${htmlEsc(f)}</span>`).join('')}</div>`:''}
  <h3 class="detail-section-title">Главные герои</h3><div class="cast-row">${s.characters.length?s.characters.map(id=>{const c=CAST.find(x=>x.id===id);return c?`<div class="cast-item">${portrait(c.avatar,c.portrait?'story-hero-avatar':'',c.portrait)}<small>${c.name}</small></div>`:''}).join(''):'<p class="cast-placeholder">Персонажей добавим после утверждения романтических веток.</p>'}</div><h3 class="chapters-title">Главы и эпизоды</h3><div class="chapter-row"><span class="chapter-mark">00</span><div class="chapter-data"><h4>${s.opening}</h4><p>${progress?.completed?'Пройдено · можно переиграть':progress?.started?'В процессе':'Доступно сейчас'}</p></div><span class="lock">✧</span></div><div class="chapter-row"><span class="chapter-mark">01</span><div class="chapter-data"><h4>Глава I · Продолжение следует</h4><p>Пока в разработке</p></div><span class="lock">♢</span></div><div class="cta-sticky"><button class="primary-btn" data-action="play">${progress?.completed?'Переиграть пролог':progress?.started?'Продолжить историю':'Начать историю'} ✧</button></div></div></main>`;}
 function renderLibrary(){app.innerHTML=`<main class="screen main-screen"><div class="starfield"></div><div class="scroll-pane"><div class="content">${screenHeader('Моя библиотека')}<div class="overline">сохранённые путешествия</div><div class="salutation" style="margin-top:15px">Каждая история<br/>оставляет след.</div><p class="subtext">Твой прогресс сохраняется автоматически на этом устройстве.</p><div class="section-line"><h2>Истории</h2><span>0${STORY_COUNT}</span></div>${Object.entries(STORIES).map(([k,s])=>{const p=data.progress[k];return `<div class="library-item"><div class="library-thumb" ${artStyle(k)}></div><div><h3>${s.title}</h3><p>${!p?.started?'Ещё не начата':p.completed?'Пролог завершён':`Играешь · ${p.choices.length} решений`}</p><button data-action="story" data-id="${k}">${p?.started?'Открыть':'Посмотреть'} ↗</button></div></div>`;}).join('')}</div></div>${nav('library')}</main>`;}
@@ -77,6 +77,8 @@ function gameState(){if(data.progress[activeStory]&&!data.progress[activeStory].
 // Держим одну анимацию кат-сцены на нескольких репликах.
 // Даже если игрок быстро нажимает, камера не прыгает к финальному кадру.
 const cutsceneTimeline={image:null,startedAt:0};
+// Время открытия текущего кадра — для обязательной паузы на иллюстрации.
+const sceneView={key:null,startedAt:0};
 let autoAdvanceTimer=null;
 function scheduleAutoAdvance(ms, expectedNode){
  clearTimeout(autoAdvanceTimer);
@@ -92,6 +94,8 @@ function renderGame(){
  const story=STORIES[activeStory];
  const p=gameState();
  const node=story.nodes[p.node]||story.nodes.start;
+ const sceneKey=`${activeStory}:${p.node}`;
+ if(sceneView.key!==sceneKey){sceneView.key=sceneKey;sceneView.startedAt=performance.now();}
  if(node.end){p.completed=true;persist();renderEnd(story,p,node);return;}
  // Загружаем тяжёлую иллюстрацию заранее, за одну реплику до появления.
  const nextCutscene=story.nodes[node.next]?.cutscene;
@@ -156,6 +160,7 @@ function renderGame(){
  const boxClass=narrator?'dialogue-box is-narrator':'dialogue-box';
  const nameHtml=speaker?`<div class="speaker-name"><span class="speaker-mark" aria-hidden="true">✧</span>${node.speaker}</div>`:'';
  const choicesHtml=isChoice?`<div class="choice-stack" role="group" aria-label="Варианты ответа">${node.choices.map((c,i)=>`<button class="choice-card" style="--i:${i}" data-action="choice" data-id="${i}" ${c.requires?.money && (p.stats.money||0)<c.requires.money?'disabled title="Недостаточно денег"':''}><span class="choice-num">0${i+1}</span><span class="choice-text">${c.text}</span></button>`).join('')}</div><div class="tap-hint">Выбор повлияет на развитие истории</div>`:'';
+ const cinematicHint=node.cinematicPause?'<div class="cinematic-continue" aria-hidden="true">Коснись экрана, чтобы продолжить <span>⌄</span></div>':'';
  const dialogueHtml=node.hideDialogue?'':`<div class="dialogue-area">
    ${note?`<div class="choice-feedback">${htmlEsc(note)}</div>`:''}
    <div class="${boxClass}">
@@ -165,7 +170,7 @@ function renderGame(){
    </div>
    ${isChoice?choicesHtml:'<div class="tap-hint">Нажми в любом месте, чтобы продолжить</div>'}
   </div>`;
- app.innerHTML=`<main class="screen game game-layout ${isChoice?'is-decision':''} ${isBlackout?'is-blackout':''} ${node.blink?'is-blink':''} ${node.pan==='left-to-right'?'has-pan-left-right':''}" data-story="${activeStory}" data-node="${p.node}" data-expression="${node.expression||'original'}">
+ app.innerHTML=`<main class="screen game game-layout ${isChoice?'is-decision':''} ${isBlackout?'is-blackout':''} ${node.blink?'is-blink':''} ${node.cinematicPause?'is-cutscene-pause':''} ${node.pan==='left-to-right'?'has-pan-left-right':''}" data-story="${activeStory}" data-node="${p.node}" data-expression="${node.expression||'original'}">
   <div class="scene-art ${activeStory==='moon'?'aether-scene':'katabasis-scene'}" ${sceneStyle}></div>
   ${cutsceneHtml}
   <div class="game-stars"></div>
@@ -176,6 +181,7 @@ function renderGame(){
    <div class="game-top-right">${musicButton()}${activeStory==='katabasis'?btnIcon('◇','casebook','title="Дело и характеристики" aria-label="Дело"'):''}${btnIcon('☰','history','title="Журнал" aria-label="Журнал"')}${btnIcon('⚙','settings','title="Настройки" aria-label="Настройки"')}</div>
   </div>
   ${dialogueHtml}
+  ${cinematicHint}
  </main>`;
  scheduleAutoAdvance(node.autoNext, p.node);
 }
@@ -200,7 +206,19 @@ function renderModal(){if(!modal)return;const div=document.createElement('div');
  div.addEventListener('click',e=>{if(e.target===div){modal=null;render();}});app.append(div);}
 function render(){switch(screen){case'loading':renderLoading();break;case'home':renderHome();break;case'profile':renderProfile();break;case'story':renderDetail();break;case'library':renderLibrary();break;case'game':renderGame();break;}renderModal();}
 function go(to){clearTimeout(autoAdvanceTimer);clearTimeout(frameTransitionTimer);frameTransitionBusy=false;app.querySelectorAll('.game-frame-out').forEach(el=>el.remove());if(to==='profile'&&screen!=='profile')profileDraft=structuredClone(data.prefs);if(to==='game'&&!data.progress[activeStory])gameState();screen=to;note='';modal=null;render();}
+// Подгружаем ключевые кадры во время чёрной заставки,
+// чтобы при открытии переулка не ждать скачивания PNG.
+let katabasisIntroImages=[];
+function preloadKatabasisIntro(){
+ katabasisIntroImages=['assets/street.png','assets/mc-pain.png'].map((src,i)=>{
+  const img=new Image();
+  if(i===0 && 'fetchPriority' in img) img.fetchPriority='high';
+  img.src=src;
+  return img;
+ });
+}
 function startStory(){
+ if(activeStory==='katabasis')preloadKatabasisIntro();
  const p=data.progress[activeStory];
  if(p?.completed){data.progress[activeStory]=null;delete data.progress[activeStory];}
  gameState();persist();
@@ -257,6 +275,8 @@ function transitionGameFrame(updateState){
 function advance(){
  const p=gameState(),node=STORIES[activeStory].nodes[p.node];
  if(!node||node.end||node.choices||frameTransitionBusy)return;
+ // Не даём быстро пролистать полноэкранную кат-сцену двойным тапом.
+ if(node.minViewMs && (performance.now()-sceneView.startedAt)<node.minViewMs)return;
  transitionGameFrame(()=>{
   p.history.push({speaker:node.speaker,text:node.text});
   p.node=node.next||'ending';
