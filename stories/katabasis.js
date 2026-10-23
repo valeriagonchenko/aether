@@ -84,36 +84,60 @@ window.AETHER_STORIES.katabasis = {
     },
     care: {
       speaker:'Врач', text:'«Сейчас главное — ваше состояние. О других обстоятельствах с вами поговорит полиция».',
-      bg:'hospitalNight', next:'police'
+      bg:'hospitalNight', next:'hospitalMorning'
     },
     facts: {
       speaker:'Врач', text:'«Понимаю, что у вас много вопросов. Скоро сюда придёт сотрудник полиции».',
-      bg:'hospitalNight', next:'police'
+      bg:'hospitalNight', next:'hospitalMorning'
+    },
+
+    // Новая сцена: дневная больница. Рассказчик — значит, на экране только фон.
+    hospitalMorning: {
+      speaker:'Рассказчик',
+      text:'К утру дождь стих. Ты так и не смогла вспомнить ни одного события прошлой ночи.',
+      bg:'hospitalDay',
+      next:'detectiveArrival'
+    },
+    detectiveArrival: {
+      speaker:'Рассказчик',
+      text:'В дверь негромко постучали. В палату вошёл мужчина в тёмном пальто.',
+      bg:'hospitalDay',
+      next:'detectiveIntroduction'
+    },
+    // Новый персонаж: его имя и реплики потом можно свободно изменить.
+    detectiveIntroduction: {
+      speaker:'Детектив',
+      text:'Доброе утро. Я веду расследование того, что произошло с вами. Можно задать несколько вопросов?',
+      bg:'hospitalDay',
+      sprite:'assets/detective.png', side:'left',
+      next:'police'
     },
     police: {
-      speaker:'Сотрудник полиции',
-      text:'«По нашим данным, вы пережили нападение серийного убийцы. Вам невероятно повезло остаться в живых».',
-      bg:'hospitalNight', next:'witness'
+      speaker:'Детектив',
+      text:'По нашим данным, вы пережили нападение серийного убийцы. Вам невероятно повезло остаться в живых.',
+      bg:'hospitalDay',
+      sprite:'assets/detective.png', side:'left',
+      next:'witness'
     },
     witness: {
       speaker:'Рассказчик',
       text:'Единственный свидетель той ночи находится в коме. Его показания получить невозможно. Всё, что тебе известно о случившемся, — чужие слова.',
-      bg:'hospitalNight', next:'secondChoice'
+      bg:'hospitalDay', next:'secondChoice'
     },
     secondChoice: {
       speaker:'Рассказчик', text:'Какую мысль ты запомнишь прежде всего?',
-      bg:'hospitalNight', choices:[
+      bg:'hospitalDay', choices:[
         {text:'Нужно выяснить, кто напал на меня', next:'search', effects:{insight:1}, clues:['Полиция связывает нападение с серийным убийцей'], flag:'startInvestigation'},
         {text:'Нужно узнать, что произошло со свидетелем', next:'witnessPath', effects:{empathy:1}, clues:['Единственный свидетель находится в коме'], flag:'rememberWitness'}
       ]
     },
     search: {
       speaker:'Рассказчик', text:'Ты ничего не помнишь, но уже знаешь: чужие версии событий не заменят твоих собственных ответов.',
-      bg:'hospitalNight', next:'ending'
+      bg:'hospitalDay', next:'ending'
     },
     witnessPath: {
       speaker:'Рассказчик', text:'Где-то в этой же реальности существует человек, который, возможно, помнит ту ночь. Но сейчас он не может рассказать тебе ничего.',
-      bg:'hospitalNight', next:'ending'
+      bg:'hospitalDay', next:'ending'
     },
     ending: {
       end:true, title:'Точка отсчёта',
