@@ -12,6 +12,13 @@
 // heroExpression: 'original' или 'crying' — эмоция героини.
 // bg: 'space' (background1.png) или 'hall' (background2.png).
 // next: имя следующего кадра; choices: варианты ответа.
+// КАТ-СЦЕНЫ — как добавить свою иллюстрацию:
+//   cutscene: 'assets/cutscene-aether-01.png', // изображение вместо фона/персонажей
+//   cutsceneStart: true,                    // только на ПЕРВОЙ реплике кат-сцены
+// Продолжай реплики с тем же cutscene-путём — картинка останется.
+// Убери cutscene из следующего кадра — иллюстрация плавно исчезнет.
+// Файл положи в папку assets/ рядом с background1.png.
+//
 // Пример нового кадра:
 // myScene: {speaker:'Героиня',text:'Я останусь здесь.',figures:'hero',
 //           expression:'original',heroExpression:'crying',bg:'hall',next:'meeting'},
@@ -30,7 +37,16 @@ window.AETHER_STORIES.moon = {title:'Приговор звёздам',eyebrow:'�
   direct:{speaker:'Аэтер',text:'Его взгляд на мгновение меняется. «Значит, уровень секретности больше не имеет значения».',figures:'aether',heroExpression:'original',expression:'surprising',bg:'hall',next:'reveal'},
   trust:{speaker:'Аэтер',text:'«Это разумно». Он выдерживает паузу. «Приказ уже отправлен. Но ещё не исполнен».',figures:'aether',heroExpression:'original',expression:'original',bg:'hall',next:'reveal'},
   silent:{speaker:'Аэтер',text:'«Молчание тоже ответ». Он отводит взгляд к огромному окну. «И сегодня оно стоит слишком дорого».',figures:'aether',heroExpression:'original',expression:'original',bg:'hall',next:'reveal'},
-  reveal:{speaker:'Рассказчик',text:'На голографической карте загорелась красная точка — колония, где сейчас живут миллионы людей. Обратный отсчёт уже начался.',figures:'none',heroExpression:'crying',bg:'space',next:'finalChoice'},
+  reveal:{speaker:'Рассказчик',text:'На голографической карте загорелась красная точка — колония, где сейчас живут миллионы людей. Обратный отсчёт уже начался.',figures:'none',heroExpression:'crying',bg:'space',next:'cinematic1'},
+
+  // КАТ-СЦЕНА №1. Картинка лежит в assets/cutscene-aether-01.png.
+  // На первом кадре добавь cutsceneStart:true — появление сверху вниз и отдаление.
+  // На остальных кадрах повтори cutscene: путь — иллюстрация останется фоном.
+  // Пока cutscene активна, модели персонажей автоматически скрываются.
+  cinematic1:{speaker:'Рассказчик',text:'Аэтер шагнул ближе. На мгновение шум станции отступил, оставив только тихий стук сердца.',bg:'hall',cutscene:'assets/cutscene-aether-01.png',cutsceneStart:true,next:'cinematic2'},
+  cinematic2:{speaker:'Аэтер',text:'«Не смотри на этот приказ. Посмотри на меня».',bg:'hall',cutscene:'assets/cutscene-aether-01.png',next:'cinematic3'},
+  cinematic3:{speaker:'Героиня',text:'«Тогда скажите, что у нас ещё есть выбор».',bg:'hall',cutscene:'assets/cutscene-aether-01.png',next:'cinematic4'},
+  cinematic4:{speaker:'Аэтер',text:'«Есть. И я не позволю тебе делать его в одиночку».',bg:'hall',cutscene:'assets/cutscene-aether-01.png',next:'finalChoice'},
   finalChoice:{speaker:'Аэтер',text:'«У нас есть одна возможность изменить исход. Но тогда ответственность будет на нас обоих».',figures:'aether',heroExpression:'crying',bg:'space',expression:'original',choices:[
    {text:'«Я помогу вам остановить приказ»',next:'stop',effects:{aether:2,bravery:1},flag:'stop'},
    {text:'«Я обнародую всё, что узнала»',next:'expose',effects:{aether:-1,bravery:2},flag:'expose'}]},
