@@ -563,3 +563,43 @@ main.game-layout.has-pan-left-right[data-story="katabasis"] .scene-art.katabasis
 .cinematic-continue span{margin-left:8px;font-size:15px;}
 @keyframes cinematicHintIn{to{opacity:1;}}
 @media(prefers-reduced-motion:reduce){.cinematic-continue{animation:none;opacity:1;}}
+
+
+/* === v17: выбор облика перед прологом «Катабасиса» === */
+.appearance-screen{background:#0b0d12;isolation:isolate;}
+.appearance-backdrop{position:absolute;inset:0;background-size:cover;background-position:center;filter:saturate(.89);transform:scale(1.015);z-index:0;}
+.appearance-screen::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(2,3,8,.30),transparent 36%,rgba(7,8,13,.08) 58%,rgba(4,5,12,.78) 100%);z-index:1;}
+.appearance-head{position:absolute;top:calc(20px + env(safe-area-inset-top));left:20px;right:20px;display:flex;align-items:center;justify-content:space-between;gap:8px;z-index:5;}
+.appearance-head>span:nth-child(2){font:600 11px var(--sans);letter-spacing:.17em;color:#efeaf1;text-shadow:0 2px 12px #000;}
+.appearance-spark{font:25px var(--serif);opacity:.9;}
+.appearance-intro{position:absolute;z-index:4;top:clamp(84px,12%,116px);left:14px;right:14px;text-align:center;text-shadow:0 2px 19px #06070b;}
+.appearance-intro .overline{font-size:9px;letter-spacing:.2em;color:#d1c9ce;}
+.appearance-intro h1{font:500 clamp(35px,8vw,46px)/.99 var(--serif);margin:10px 0 5px;color:#fff;}
+.appearance-intro p{font:16px/1.2 var(--serif);color:#e1d9df;margin:0;}
+.appearance-character{position:absolute;inset:19% -8% 22%;display:flex;justify-content:center;align-items:flex-end;z-index:2;pointer-events:none;}
+.appearance-character img{max-width:none;width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:drop-shadow(0 15px 24px rgba(1,2,5,.75));-webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 72%,transparent 100%);mask-image:linear-gradient(to bottom,#000 0%,#000 72%,transparent 100%);transform-origin:center 73%;animation:appearanceReveal .37s ease-out both;}
+@keyframes appearanceReveal{from{opacity:.2;transform:translateY(8px) scale(1.12);}to{opacity:1;transform:translateY(0) scale(1.20);}}
+.appearance-bottom{position:absolute;z-index:4;bottom:calc(20px + env(safe-area-inset-bottom));left:22px;right:22px;text-align:center;}
+.appearance-current{font:500 25px/1.2 var(--serif);color:#f8f5f8;margin-bottom:11px;text-shadow:0 1px 13px #05050b;}
+.appearance-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:17px;}
+.appearance-choice{display:flex;flex-direction:column;align-items:center;gap:6px;padding:9px 5px 8px;background:linear-gradient(145deg,rgba(44,43,50,.73),rgba(14,14,24,.83));border:1px solid rgba(245,237,249,.28);border-radius:13px;backdrop-filter:blur(16px);color:#e4dce3;transition:border-color .2s,background .2s,transform .2s;}
+.appearance-choice.selected{border-color:rgba(255,255,255,.94);background:linear-gradient(145deg,rgba(104,98,113,.88),rgba(27,26,36,.89));box-shadow:0 0 0 1px rgba(255,255,255,.12),0 0 26px rgba(240,231,247,.16);}
+.appearance-choice:active{transform:scale(.98);}
+.appearance-portrait{width:64px;height:64px;border-radius:50%;display:block;overflow:hidden;border:1px solid rgba(247,240,251,.42);background:radial-gradient(circle at 50% 20%,#777480,#292732 78%);}
+.appearance-portrait img{display:block;width:195%;height:195%;max-width:none;object-fit:cover;object-position:center 8%;transform:translate(-24%,-8%);}
+.appearance-choice-name{font:600 10px var(--sans);letter-spacing:.025em;}
+.appearance-confirm{min-height:52px;box-shadow:0 8px 24px rgba(0,0,0,.46);}
+.appearance-confirm span{font-size:13px;margin-left:6px;}
+.appearance-footnote{margin:10px 0 0;font-size:9px;color:#e2dfe3;letter-spacing:.06em;text-shadow:0 2px 8px #000;}
+@media(max-height:710px){
+ .appearance-intro{top:76px;}.appearance-intro h1{font-size:36px;}
+ .appearance-character{inset:16% -8% 22%;}
+ .appearance-bottom{bottom:calc(10px + env(safe-area-inset-bottom));}
+ .appearance-portrait{width:48px;height:48px;}
+ .appearance-choice{padding:6px 3px;gap:4px;}
+ .appearance-choices{margin-bottom:10px;}
+ .appearance-current{margin-bottom:7px;font-size:21px;}
+ .appearance-confirm{min-height:45px;}
+ .appearance-footnote{margin:6px 0 0;}
+}
+@media(prefers-reduced-motion:reduce){.appearance-character img{animation:none;transform:scale(1.20);}}

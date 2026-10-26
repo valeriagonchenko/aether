@@ -7,6 +7,30 @@ const AETHER_BACKGROUNDS = {space:'assets/background1.png', hall:'assets/backgro
 const AETHER_SPRITES = {original:'assets/Aether-original.png', surprising:'assets/Aether-surprising.png'};
 const HERO_SPRITES = {original:'assets/her-original.png', crying:'assets/her-crying.png'};
 const MUSIC_URL = 'assets/music-background.mp3';
+// Выбор внешности для «Катабасиса». Сохраняется отдельно в прогрессе истории.
+const KATABASIS_LOOKS = Object.freeze({
+ black: {label:'Брюнетка', image:'assets/mc-default-black.png'},
+ red:   {label:'Рыжая', image:'assets/mc-default-red.png'},
+ blond: {label:'Блондинка', image:'assets/mc-default-blond.png'}
+});
+const KATABASIS_WARDROBE = 'assets/гардероб.png';
+function currentKatabasisLook(progress){
+ const id=progress?.appearance;
+ return Object.hasOwn(KATABASIS_LOOKS,id)?id:'black';
+}
+// Одна точка выбора спрайта: новые обычные реплики ГГ автоматически
+// показывают вариант внешности, выбранный игроком.
+function resolveKatabasisSprite(node,progress){
+ if((node.speaker||'').trim()!=='Героиня')return node.sprite||'';
+ const choice=currentKatabasisLook(progress);
+ const normal=KATABASIS_LOOKS[choice].image;
+ if(!node.sprite || /^assets\/mc-default(?:-(?:black|red|blond))?\.png$/.test(node.sprite))return normal;
+ // Для раненой героини пока подготовлена только брюнетка.
+ // Для других вариантов сохраняем выбранный цвет волос, показывая
+ // обычный спрайт до появления альтернативных раненых моделей.
+ if(node.sprite==='assets/mc-pain.png')return choice==='black'?node.sprite:normal;
+ return node.sprite;
+}
 const KATABASIS_BACKGROUNDS = {
  street: 'assets/street.png',
  hospitalNight: 'assets/hospital-night.png',
@@ -53,7 +77,7 @@ data.prefs.favoriteCharacters=(data.prefs.favoriteCharacters||[]).filter(id=>CAS
 if(data.progress.moon && !data.progress.moon.isAetherV2){delete data.progress.moon;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(err){}}
 // Пролог Катабасиса полностью заменён: старую демо-позицию сбрасываем один раз.
 if(data.progress.katabasis && !data.progress.katabasis.isKatabasisV13){delete data.progress.katabasis;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));}catch(err){}}
-let screen='loading', activeStory='moon', profileDraft=null, modal=null, note='', musicOn=false;
+let screen='loading', activeStory='moon', profileDraft=null, appearanceDraft='black', modal=null, note='', musicOn=false;
 let soundtrack=null;
 const app=document.getElementById('app');
 const htmlEsc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -72,6 +96,35 @@ function renderProfile(){if(!profileDraft)profileDraft=structuredClone(data.pref
 function renderDetail(){const s=STORIES[activeStory],progress=data.progress[activeStory],fav=data.prefs.favoriteStory===activeStory;app.innerHTML=`<main class="screen story-screen"><div class="detail-art ${activeStory==='moon'?'aether-detail':'katabasis-detail'}" ${artStyle(activeStory)}><div class="detail-orbit"></div><div class="top-row">${btnIcon('‹','go','data-target="home" aria-label="Назад"')}<div class="top-actions">${btnIcon(fav?'♥':'♡','quick-favorite',`title="${fav?'Уже в избранном':'В избранное'}" aria-label="В избранное"`)}${btnIcon('⋯','settings','aria-label="Настройки"')}</div></div></div><div class="detail-pane"><div class="detail-kicker">${s.eyebrow}</div><h1>${s.title}</h1><p class="detail-subtitle">${s.subtitle}</p><div class="tag-row">${s.genres.map(t=>`<span class="tag">${t}</span>`).join('')}</div><p class="detail-description">${s.description}</p><div class="stats-panel"><div class="stat"><big>${s.chapters}</big><span>Главы</span></div><div class="stat"><big>${activeStory==='katabasis'?'3':'2'}</big><span>${activeStory==='katabasis'?'Основные ветки · план':'Финала демо'}</span></div><div class="stat"><big>${activeStory==='katabasis'?'2':s.characters.length}</big><span>${activeStory==='katabasis'?'Мини-интрижки · план':'Персонажи'}</span></div></div>
  ${s.features?.length?`<h3 class="detail-section-title">Особенности истории</h3><div class="story-features">${s.features.map(f=>`<span class="feature-pill">✧ ${htmlEsc(f)}</span>`).join('')}</div>`:''}
  <h3 class="detail-section-title">Главные герои</h3><div class="cast-row">${s.characters.length?s.characters.map(id=>{const c=CAST.find(x=>x.id===id);return c?`<div class="cast-item">${portrait(c.avatar,c.portrait?'story-hero-avatar':'',c.portrait)}<small>${c.name}</small></div>`:''}).join(''):'<p class="cast-placeholder">Персонажей добавим после утверждения романтических веток.</p>'}</div><h3 class="chapters-title">Главы и эпизоды</h3><div class="chapter-row"><span class="chapter-mark">00</span><div class="chapter-data"><h4>${s.opening}</h4><p>${progress?.completed?'Пройдено · можно переиграть':progress?.started?'В процессе':'Доступно сейчас'}</p></div><span class="lock">✧</span></div><div class="chapter-row"><span class="chapter-mark">01</span><div class="chapter-data"><h4>Глава I · Продолжение следует</h4><p>Пока в разработке</p></div><span class="lock">♢</span></div><div class="cta-sticky"><button class="primary-btn" data-action="play">${progress?.completed?'Переиграть пролог':progress?.started?'Продолжить историю':'Начать историю'} ✧</button></div></div></main>`;}
+// Отдельная комната перед самым первым запуском и каждым новым прохождением.
+function renderCustomizer(){
+ const selected=KATABASIS_LOOKS[appearanceDraft]||KATABASIS_LOOKS.black;
+ app.innerHTML=`<main class="screen appearance-screen">
+  <div class="appearance-backdrop" style="background-image:linear-gradient(180deg,rgba(5,7,13,.55),rgba(7,8,14,.08) 36%,rgba(7,8,15,.28) 67%,rgba(7,8,15,.91)),url('${KATABASIS_WARDROBE}')"></div>
+  <div class="appearance-head">
+    ${btnIcon('‹','go','data-target="story" aria-label="Вернуться к истории"')}
+    <span>КАТАБАСИС · ПРОЛОГ</span><span class="appearance-spark">✧</span>
+  </div>
+  <div class="appearance-intro"><div class="overline">Твоя история начинается здесь</div>
+    <h1>Выбери внешность</h1>
+    <p>Каким будет твоё отражение?</p>
+  </div>
+  <div class="appearance-character" aria-live="polite">
+    <img src="${selected.image}" alt="Героиня: ${selected.label}" draggable="false" />
+  </div>
+  <div class="appearance-bottom">
+    <div class="appearance-current">${selected.label}</div>
+    <div class="appearance-choices" role="group" aria-label="Выбор внешности главной героини">
+      ${Object.entries(KATABASIS_LOOKS).map(([id,look])=>`<button type="button" class="appearance-choice ${id===appearanceDraft?'selected':''}" data-action="select-appearance" data-id="${id}" aria-pressed="${id===appearanceDraft}">
+        <span class="appearance-portrait"><img src="${look.image}" alt="" draggable="false" /></span>
+        <span class="appearance-choice-name">${look.label}</span>
+      </button>`).join('')}
+    </div>
+    <button class="primary-btn appearance-confirm" data-action="confirm-appearance">Начать историю <span aria-hidden="true">✦</span></button>
+    <p class="appearance-footnote">Выбор сохранится для этого прохождения</p>
+  </div>
+ </main>`;
+}
 function renderLibrary(){app.innerHTML=`<main class="screen main-screen"><div class="starfield"></div><div class="scroll-pane"><div class="content">${screenHeader('Моя библиотека')}<div class="overline">сохранённые путешествия</div><div class="salutation" style="margin-top:15px">Каждая история<br/>оставляет след.</div><p class="subtext">Твой прогресс сохраняется автоматически на этом устройстве.</p><div class="section-line"><h2>Истории</h2><span>0${STORY_COUNT}</span></div>${Object.entries(STORIES).map(([k,s])=>{const p=data.progress[k];return `<div class="library-item"><div class="library-thumb" ${artStyle(k)}></div><div><h3>${s.title}</h3><p>${!p?.started?'Ещё не начата':p.completed?'Пролог завершён':`Играешь · ${p.choices.length} решений`}</p><button data-action="story" data-id="${k}">${p?.started?'Открыть':'Посмотреть'} ↗</button></div></div>`;}).join('')}</div></div>${nav('library')}</main>`;}
 function gameState(){if(data.progress[activeStory]&&!data.progress[activeStory].clues)data.progress[activeStory].clues=[];if(!data.progress[activeStory])data.progress[activeStory]={started:true,node:'start',flags:{},relations:{},stats:{...(STORIES[activeStory].initialStats||{bravery:0})},clues:[],choices:[],history:[],completed:false,isAetherV2:activeStory==='moon',isKatabasisV13:activeStory==='katabasis'};return data.progress[activeStory];}
 // Держим одну анимацию кат-сцены на нескольких репликах.
@@ -140,11 +193,14 @@ function renderGame(){
     const image=node.heroImage||HERO_SPRITES[heroExpression];
     figureHtml=`<div class="character-slot character-slot--right"><img class="scene-figure heroine-sprite" src="${htmlEsc(image)}" alt="Главная героиня" /></div>`;
    }
-  }else if(node.sprite){
-   // Для будущих персонажей Катабасиса: указать sprite и side в сцене.
-   const side=node.side==='right'?'right':'left';
-   figureHtml=`<div class="character-slot character-slot--${side}"><img class="scene-figure katabasis-sprite" src="${htmlEsc(node.sprite)}" alt="${htmlEsc(speaker)}" /></div>`;
-
+  }else{
+   // Любая реплика героини берёт внешность из сохранения;
+   // NPC используют свои изображения из сценария без изменений.
+   const image=resolveKatabasisSprite(node,p);
+   if(image){
+    const side=node.side==='right'?'right':'left';
+    figureHtml=`<div class="character-slot character-slot--${side}"><img class="scene-figure katabasis-sprite" src="${htmlEsc(image)}" alt="${htmlEsc(speaker)}" /></div>`;
+   }
   }
  }
  const sceneImage=activeStory==='moon'
@@ -204,13 +260,13 @@ function renderModal(){if(!modal)return;const div=document.createElement('div');
  }
  if(modal==='history'){const history=gameState().history;const node=STORIES[activeStory].nodes[gameState().node];div.innerHTML=`<section class="modal" role="dialog" aria-modal="true" aria-label="Журнал"><div class="top-row"><h2>Журнал</h2>${btnIcon('×','close-modal','aria-label="Закрыть"')}</div><div style="max-height:390px;overflow:auto">${history.length?history.slice(-12).map(h=>`<div class="history-text"><b>${htmlEsc(h.speaker)}</b>${htmlEsc(h.text)}</div>`).join(''):'<p>Здесь появятся прочитанные реплики.</p>'}<div class="history-text"><b>${node.speaker}</b>${node.text}</div></div></section>`;}
  div.addEventListener('click',e=>{if(e.target===div){modal=null;render();}});app.append(div);}
-function render(){switch(screen){case'loading':renderLoading();break;case'home':renderHome();break;case'profile':renderProfile();break;case'story':renderDetail();break;case'library':renderLibrary();break;case'game':renderGame();break;}renderModal();}
+function render(){switch(screen){case'loading':renderLoading();break;case'home':renderHome();break;case'profile':renderProfile();break;case'customize':renderCustomizer();break;case'story':renderDetail();break;case'library':renderLibrary();break;case'game':renderGame();break;}renderModal();}
 function go(to){clearTimeout(autoAdvanceTimer);clearTimeout(frameTransitionTimer);frameTransitionBusy=false;app.querySelectorAll('.game-frame-out').forEach(el=>el.remove());if(to==='profile'&&screen!=='profile')profileDraft=structuredClone(data.prefs);if(to==='game'&&!data.progress[activeStory])gameState();screen=to;note='';modal=null;render();}
 // Подгружаем ключевые кадры во время чёрной заставки,
 // чтобы при открытии переулка не ждать скачивания PNG.
 let katabasisIntroImages=[];
 function preloadKatabasisIntro(){
- katabasisIntroImages=['assets/street.png','assets/mc-pain.png'].map((src,i)=>{
+ katabasisIntroImages=['assets/street.png','assets/mc-pain.png',KATABASIS_LOOKS[currentKatabasisLook(data.progress.katabasis)].image].map((src,i)=>{
   const img=new Image();
   if(i===0 && 'fetchPriority' in img) img.fetchPriority='high';
   img.src=src;
@@ -218,14 +274,33 @@ function preloadKatabasisIntro(){
  });
 }
 function startStory(){
+ const p=data.progress[activeStory];
+ // Новое прохождение Катабасиса всегда начинается с выбора героини.
+ // При продолжении текущего прогресса настройка повторно не спрашивается.
+ if(activeStory==='katabasis' && (!p?.started || p.completed || !p.appearance)){
+  appearanceDraft=currentKatabasisLook(p);
+  go('customize');
+  return;
+ }
+ beginStoryPlayback();
+}
+function beginStoryPlayback(){
  if(activeStory==='katabasis')preloadKatabasisIntro();
  const p=data.progress[activeStory];
- if(p?.completed){data.progress[activeStory]=null;delete data.progress[activeStory];}
+ if(p?.completed)delete data.progress[activeStory];
  gameState();persist();
- // Вызов в обработчике нажатия «Начать историю»: браузер разрешает запуск звука.
- // Если пользователь ранее выключил звук, настройка сохраняется.
+ // Пользователь нажал на кнопку; это разрешает старт музыки в браузере.
  if(activeStory==='katabasis' && data.prefs.musicEnabled!==false)void playStoryMusic();
  go('game');
+}
+function confirmAppearance(){
+ if(activeStory!=='katabasis')return;
+ // Перезапуск обнуляет сюжет, но сохраняет новую выбранную внешность.
+ if(data.progress.katabasis?.completed)delete data.progress.katabasis;
+ const p=gameState();
+ p.appearance=Object.hasOwn(KATABASIS_LOOKS,appearanceDraft)?appearanceDraft:'black';
+ persist();
+ beginStoryPlayback();
 }
 // Плавная смена кадров. Старый кадр остаётся поверх нового на 480 мс
 // и растворяется вместе со старой эмоцией персонажа.
@@ -358,9 +433,11 @@ case'go':go(target.dataset.target);break;
 case'story':activeStory=id;go('story');break;
 case'game-back':go('story');break;
 case'play':startStory();break;
+case'select-appearance':if(Object.hasOwn(KATABASIS_LOOKS,id)){appearanceDraft=id;render();}break;
+case'confirm-appearance':confirmAppearance();break;
 case'advance':advance();break;
 case'choice':choose(Number(id));break;
-case'restart':delete data.progress[activeStory];persist();startStory();break;
+case'restart':{const oldLook=activeStory==='katabasis'?currentKatabasisLook(data.progress.katabasis):null;delete data.progress[activeStory];persist();if(activeStory==='katabasis'){appearanceDraft=oldLook;go('customize');}else startStory();break;}
 case'avatar':profileDraft.avatar=Number(id);render();break;
 case'favorite-story':profileDraft.favoriteStory=id;render();break;
 case'favorite-character':{const list=profileDraft.favoriteCharacters;const pos=list.indexOf(id);if(pos>=0)list.splice(pos,1);else if(list.length<3)list.push(id);else{toast('Можно выбрать только трёх персонажей');return;}render();break;}
