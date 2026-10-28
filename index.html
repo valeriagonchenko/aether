@@ -4,20 +4,63 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#11121a" />
-  <meta name="description" content="AETHER — интерактивные истории. Демонстрационный прототип визуальной новеллы." />
+  <meta name="description" content="AETHER — интерактивные истории." />
   <title>AETHER — истории за гранью</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="preload" href="assets/гардероб.png" as="image" />
-  <link rel="stylesheet" href="style.css?v=aether-v19" />
+  <link rel="stylesheet" href="style.css?v=aether-recovery-20261028b" />
+  <style>
+    #aether-boot-error { display:none; position:absolute; inset:0; z-index:200; background:#15151e;
+      color:#f4f1f6; padding:28px; justify-content:center; align-items:center; flex-direction:column;
+      text-align:center; font:14px/1.6 Arial,sans-serif; }
+    #aether-boot-error h2 { font: 32px Georgia,serif; margin:0 0 8px; }
+    #aether-boot-error p { max-width:340px; }
+    #aether-boot-error small { color:#b4aebd; overflow-wrap:anywhere; max-width:340px; }
+    #aether-boot-error button { background:#e5dfe9; color:#17141c; padding:12px 24px;
+      border:0; border-radius:22px; margin-top:18px; font-size:14px; }
+  </style>
+  <script>
+   // Диагностика загрузки. Сама игра работает в script.js.
+   (function(){
+      var firstError = '';
+      function showProblem(message){
+         var host=document.getElementById('aether-boot-error');
+         var app=document.getElementById('app');
+         if(!host||!app || app.innerHTML.trim()) return;
+         host.style.display='flex';
+         document.getElementById('aether-boot-detail').textContent=message || 'Скрипт не загрузился';
+      }
+      window.addEventListener('error',function(event){
+         if(event.target && event.target.tagName==='SCRIPT'){
+           firstError = 'Не загрузился файл: '+(event.target.getAttribute('src') || 'скрипт');
+         }else if(event.message){
+           firstError = event.message + (event.filename?' · '+event.filename.split('/').pop()+':'+event.lineno:'');
+         }
+         setTimeout(function(){showProblem(firstError)},700);
+      },true);
+      window.addEventListener('unhandledrejection',function(event){
+         firstError = String(event.reason && (event.reason.message||event.reason) || 'Ошибка JavaScript');
+         setTimeout(function(){showProblem(firstError)},700);
+      });
+      window.addEventListener('DOMContentLoaded',function(){
+         setTimeout(function(){showProblem(firstError || 'Приложение не запустилось. Проверьте подключение файлов.')},1800);
+      });
+   })();
+  </script>
 </head>
 <body>
   <div class="desktop-ornament desktop-ornament--left" aria-hidden="true"><span class="vertical-word">AETHER · STORIES BEYOND</span><span class="desktop-line"></span></div>
   <div id="app" class="app" aria-live="polite"></div>
   <div class="desktop-ornament desktop-ornament--right" aria-hidden="true"><span class="tiny-cross">✧</span><span class="vertical-word">YOUR CHOICES BECOME CONSTELLATIONS</span></div>
-  <script src="stories/katabasis/index.js?v=aether-v19" defer></script>
-  <script src="stories/katabasis/episode-01.js?v=aether-v19-hotfix1" defer></script>
-  <script src="script.js?v=aether-v19" defer></script>
+  <div id="aether-boot-error" role="alert">
+     <h2>Не удалось открыть AETHER</h2>
+     <p>Ошибка запуска игры. Прогресс сохранён, ничего удалять не нужно.</p>
+     <small id="aether-boot-detail"></small>
+     <button onclick="location.reload()">Обновить страницу</button>
+  </div>
+  <script defer src="stories/katabasis/index.js?v=aether-recovery-20261028b"></script>
+  <script defer src="stories/katabasis/episode-01.js?v=aether-recovery-20261028b"></script>
+  <script defer src="script.js?v=aether-recovery-20261028b"></script>
 </body>
 </html>
