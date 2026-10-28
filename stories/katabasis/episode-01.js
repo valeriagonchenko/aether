@@ -27,6 +27,7 @@ window.AETHER_EPISODES.katabasis['episode-01'] = {
       speaker:'Героиня',
       text:'Как я тут оказалась?..',
       cutscene:'assets/cut-scene1.png', cutsceneStart:true,
+      voice: 'audio/katabasis/episode-01/mc-001.mp3'
       cardReward:'knife-memory', // получите после просмотра этой кат-сцены
       next:'knifeHold'
     },
@@ -48,6 +49,7 @@ window.AETHER_EPISODES.katabasis['episode-01'] = {
       speaker:'Медсестра',
       text:'С вами всё будет хорошо. Мы о вас позаботимся.',
       bg:'hospitalNight', sprite:'assets/nurse.png', side:'right',
+        voice: 'audio/katabasis/episode-01/nune-001.mp3'
       next:'firstChoice'
     },
     firstChoice: {
@@ -60,6 +62,7 @@ window.AETHER_EPISODES.katabasis['episode-01'] = {
     },
     care: {
       speaker:'Врач', text:'«Сейчас главное — ваше состояние. О других обстоятельствах с вами поговорит полиция».',
+        voice: 'audio/katabasis/episode-01/doctor-001.mp3'
       bg:'hospitalNight', next:'hospitalMorning'
     },
     facts: {
