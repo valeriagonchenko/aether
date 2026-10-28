@@ -603,3 +603,75 @@ main.game-layout.has-pan-left-right[data-story="katabasis"] .scene-art.katabasis
  .appearance-footnote{margin:6px 0 0;}
 }
 @media(prefers-reduced-motion:reduce){.appearance-character img{animation:none;transform:scale(1.20);}}
+
+/* v18: список эпизодов. Эпизод 1 включает пролог, отдельных карточек пролога нет. */
+.episodes-screen .content{padding-bottom:70px}
+.episode-hero{position:relative;height:208px;overflow:hidden;border:1px solid rgba(233,228,239,.23);border-radius:17px;background-image:linear-gradient(0deg,rgba(8,11,18,.98),rgba(8,11,18,.12) 72%),var(--art);background-size:cover;background-position:center 42%;margin-bottom:20px}
+.episode-hero-copy{position:absolute;bottom:17px;left:18px;right:18px;text-shadow:0 2px 20px #080b10}
+.episode-hero-copy span{font-size:9px;letter-spacing:.22em;color:#dfd9e2}
+.episode-hero-copy h2{font:500 27px/1.04 var(--serif);margin:7px 0 0;max-width:270px}
+.episode-intro{font-size:12px;line-height:1.65;color:#c8c3cd;margin:0 0 22px}
+.episode-card{display:flex;gap:16px;padding:17px 15px;margin:0 0 12px;border:1px solid rgba(236,231,242,.27);border-radius:14px;background:linear-gradient(115deg,rgba(231,224,236,.10),rgba(19,22,32,.68));box-shadow:inset 0 1px 0 rgba(255,255,255,.065)}
+.episode-card--locked{opacity:.58;background:rgba(240,231,243,.025)}
+.episode-number{font:500 44px/.95 var(--serif);color:#e9e3ed;min-width:46px}
+.episode-info{min-width:0;flex:1}
+.episode-status{display:inline-block;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#cbc5d2}
+.episode-info h3{font:500 23px/1.1 var(--serif);margin:6px 0 7px}
+.episode-info p{font-size:11px;line-height:1.6;color:#c9c4d0;margin:0 0 12px}
+.episode-launch{border:1px solid rgba(255,255,255,.62);border-radius:24px;background:rgba(236,229,240,.89);color:#1f2029;padding:9px 17px;font:700 11px var(--sans)}
+.episode-launch:hover{background:#fff}
+.episode-coming{display:inline-block;color:#b6b0c0;font-size:10px}
+.episodes-note{text-align:center;color:#b0a9b8;font-size:10px;margin:26px 0}
+.detail-episode-list .episode-card{padding:13px 11px;gap:11px}
+.detail-episode-list .episode-info h3{font-size:18px}
+.detail-episode-list .episode-number{font-size:31px;min-width:34px}
+.detail-episode-list .episode-info p{font-size:10px}
+
+/* v18: «Приговор звёздам» полностью скрыт, заставка посвящена Катабасису. */
+.loading{background:#0a0d13}
+.loading::before{background-image:url("assets/promo-katabasis.png");background-position:center 24%}
+
+
+/* v19 — коллекция карточек и отдельная кнопка озвучки */
+.nav {padding-inline:10px;gap:2px;justify-content:space-between}
+.nav button{flex:1;min-width:0;font-size:9px;white-space:nowrap}
+.collection-screen .content{padding-bottom:112px}
+.collection-lead{font:400 26px/1.1 var(--serif);margin:12px 0 22px;color:#eee8f3}
+.collection-progress{display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(239,230,245,.16);border-bottom:1px solid rgba(239,230,245,.16);padding:14px 0;margin-bottom:18px;font-size:11px;color:#bcb5c5}
+.collection-progress strong{font:500 22px var(--serif);color:#f3edf4}
+.collection-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.collectible-card{min-width:0;padding:5px;background:linear-gradient(145deg,#56535f,#252630 45%,#191a25);border:1px solid rgba(232,223,241,.44);border-radius:13px;color:#f2edf3;text-align:left;box-shadow:0 10px 27px rgba(0,0,0,.27),inset 0 1px 0 rgba(255,255,255,.1);transition:transform .2s,box-shadow .2s;overflow:hidden}
+.collectible-card:hover{transform:translateY(-3px)}
+.collectible-card.is-rare{border:1px solid #b99b5f;background:linear-gradient(137deg,#b99a59,#58472f 12%,#1b1b26 55%,#947547 100%);box-shadow:0 9px 28px rgba(0,0,0,.38),inset 0 0 0 1px rgba(236,199,110,.25)}
+.collectible-image{position:relative;aspect-ratio:3/4;overflow:hidden;border-radius:9px;background:#111521}
+.collectible-image img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .3s ease}
+.collectible-card:hover .collectible-image img{transform:scale(1.035)}
+.collectible-card.is-locked .collectible-image img{filter:blur(10px) grayscale(1) brightness(.42);transform:scale(1.05)}
+.collection-lock{position:absolute;inset:0;display:flex;flex-direction:column;gap:8px;justify-content:center;align-items:center;font:36px var(--serif);text-shadow:0 1px 15px #000}
+.collection-lock small{font:700 10px var(--sans);letter-spacing:.12em;text-transform:uppercase}
+.collectible-footer{display:flex;flex-direction:column;gap:7px;padding:10px 7px 8px}
+.collectible-title{font:500 21px/1 var(--serif)}
+.collectible-rarity{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#cfc9d2}
+.collectible-rarity.rarity-gold{color:#e3c78a}
+.collection-note{font-size:11px;color:#a9a3b1;line-height:1.7;margin:23px 2px}
+.collection-viewer{position:relative;width:min(100%,380px);max-height:88dvh;overflow:auto;border:1px solid rgba(234,229,243,.62);border-radius:15px;background:#151620;padding:6px;box-shadow:0 15px 45px #0009}
+.collection-viewer.is-rare{border-color:#bca06c;box-shadow:0 0 0 1px rgba(198,164,96,.17),0 18px 55px #000b}
+.collection-viewer>img{display:block;width:100%;max-height:64dvh;object-fit:contain;border-radius:9px}
+.collection-viewer-caption{padding:14px 11px 10px;text-align:center}
+.collection-viewer-caption .overline{color:#c7b6c8}
+.collection-viewer.is-rare .overline{color:#d7bb7d}
+.collection-viewer-caption h2{font:500 30px var(--serif);margin:7px 0}
+.collection-viewer-caption p{font-size:11px;line-height:1.7;color:#c7c1cd;margin:0}
+.collection-viewer-close{position:absolute;right:12px;top:12px;z-index:2;background:rgba(15,15,23,.75);border:1px solid #ffffff88;border-radius:50%;width:34px;height:34px;color:white;font-size:23px;line-height:1;backdrop-filter:blur(8px)}
+/* Пять пиктограмм + назад: заголовок остаётся видимым, но сокращается на узких экранах. */
+.game-top{left:11px;right:11px;gap:5px}
+.game-top-right{gap:4px}
+.game-top button.icon-button{width:32px;height:32px}
+.game-top .chapter-label{font-size:11px;max-width:none;min-width:0;flex:1;text-align:center}
+@media(max-width:390px){
+ .game-top{left:7px;right:7px;gap:3px}
+ .game-top-right{gap:3px}
+ .game-top button.icon-button{width:30px;height:30px}
+ .game-top .chapter-label{font-size:10px;letter-spacing:0}
+}
+@media(max-width:340px){.game-top .chapter-label{display:none}}
